@@ -1,7 +1,7 @@
 package gal.usc.etse.grei.es.project.service;
 
-import gal.usc.etse.grei.es.project.model.Movie;
-import gal.usc.etse.grei.es.project.repository.MovieRepository;
+import gal.usc.etse.grei.es.project.model.Assessment;
+import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class MovieService {
-    private final MovieRepository movies;
+public class AssessmentService {
+    private final AssessmentRepository assessments;
 
     @Autowired
-    public MovieService(MovieRepository movies) {
-        this.movies = movies;
+    public AssessmentService(AssessmentRepository assessments) {
+        this.assessments = assessments;
     }
 
-    public Optional<Page<Movie>> get(int page, int size, Sort sort) {
+    public Optional<Page<Assessment>> get(int page, int size, Sort sort) {
         Pageable request = PageRequest.of(page, size, sort);
-        Page<Movie> result = movies.findAll(request);
+        Page<Assessment> result = assessments.findAll(request);
 
         if(result.isEmpty())
             return Optional.empty();
@@ -30,11 +30,12 @@ public class MovieService {
         else return Optional.of(result);
     }
 
-    public Optional<Movie> get(String id) {
-        return movies.findById(id);
+    public Optional<Assessment> get(String id) {
+        return assessments.findById(id);
     }
 
+
     public void delete(String id) {
-        movies.deleteById(id);
+        assessments.deleteById(id);
     }
 }

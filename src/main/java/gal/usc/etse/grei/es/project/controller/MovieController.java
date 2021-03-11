@@ -50,4 +50,16 @@ public class MovieController {
     ResponseEntity<Movie> get(@PathVariable("id") String id) {
         return ResponseEntity.of(movies.get(id));
     }
+
+    @DeleteMapping(
+            path = "{id}"
+    )
+    ResponseEntity<Object> delete(@PathVariable("id") String id) {
+        try{
+            movies.delete(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

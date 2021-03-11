@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 @Service
 public class UserService {
@@ -31,5 +32,9 @@ public class UserService {
 
     public Optional<User> get(String email) {
         return users.findById(email);
+    }
+
+    public void delete(String email) {
+        users.deleteById(email);
     }
 }

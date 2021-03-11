@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-@Document(collection = "comments")
+@Document(collection = "assessments")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Assessment {
     @Id
