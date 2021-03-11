@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -18,6 +19,19 @@ public class Date {
         this.day = day;
         this.month = month;
         this.year = year;
+    }
+
+    public Date(String date) {
+        String[] dates = date.split("/");
+        if(dates.length != 3){
+            this.day = 0;
+            this.month = 0;
+            this.year = 0;
+            return;
+        }
+        this.day = Integer.parseInt(dates[0]);
+        this.month = Integer.parseInt(dates[1]);
+        this.year = Integer.parseInt(dates[2]);
     }
 
     public Integer getDay() {
