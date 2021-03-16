@@ -23,6 +23,7 @@ public class MovieController {
         this.movies = movies;
     }
 
+    //Get all movies
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     ) ResponseEntity<Page<Movie>> get(
@@ -43,6 +44,7 @@ public class MovieController {
         return ResponseEntity.of(movies.get(page, size, Sort.by(criteria)));
     }
 
+    //Get one movie
     @GetMapping(
             path = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -51,6 +53,7 @@ public class MovieController {
         return ResponseEntity.of(movies.get(id));
     }
 
+    //Delete one movie
     @DeleteMapping(
             path = "{id}"
     )
