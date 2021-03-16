@@ -1,8 +1,6 @@
 package gal.usc.etse.grei.es.project.service;
 
 import gal.usc.etse.grei.es.project.model.Assessment;
-import gal.usc.etse.grei.es.project.model.Movie;
-import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.Optional;
 
 @Service

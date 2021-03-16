@@ -1,5 +1,6 @@
 package gal.usc.etse.grei.es.project.controller;
 
+import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,30 @@ public class UserController {
     ResponseEntity<User> get(@PathVariable("email") String email) {
         if (email.equals("tea")){return ResponseEntity.status(418).build();}
         return ResponseEntity.of(users.get(email));
+    }
+
+    //Get movie's assessments
+    @GetMapping(
+            path = "{email}/assessments",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Page<Assessment>> get(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "") List<String> sort,
+            @PathVariable("email") String email,
+            @RequestBody @Valid Assessment assessment
+    ) {
+        List<Sort.Order> criteria = sort.stream().map(string -> {
+            if(string.startsWith("+")){
+                return Sort.Order.asc(string.substring(1));
+            } else if (string.startsWith("-")) {
+                return Sort.Order.desc(string.substring(1));
+            } else return null;
+        })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return ResponseEntity.of(users.getAssessments(page, size, Sort.by(criteria), email));
     }
 
     //Create user
