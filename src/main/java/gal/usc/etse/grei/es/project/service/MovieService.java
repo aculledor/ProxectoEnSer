@@ -28,6 +28,7 @@ public class MovieService {
 
         Example<Movie> filter = Example.of(new Movie().setTitle(title).setKeywords(keywords).setGenres(genres).setCrew(crew).setCast(cast).setProducers(producers).setReleaseDate(releaseDate), matcher);
 
+        //Non funciona e non sei porqué
         Page<Movie> result = movies.findAll(filter, request);
 
         if(result.isEmpty())
