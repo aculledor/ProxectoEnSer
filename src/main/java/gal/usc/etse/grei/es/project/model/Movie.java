@@ -197,6 +197,26 @@ public class Movie {
         return this;
     }
 
+    public Movie updateMovie(Movie movie){
+        this.id = movie.id;
+        this.title = movie.title;
+        this.overview = movie.overview;
+        this.tagline = movie.tagline;
+        this.collection = movie.collection;
+        this.genres = movie.genres;
+        this.releaseDate = movie.releaseDate;
+        this.keywords = movie.keywords;
+        this.producers = movie.producers;
+        this.crew = movie.crew;
+        this.cast = movie.cast;
+        this.resources = movie.resources;
+        this.budget = movie.budget;
+        this.status = movie.status;
+        this.runtime = movie.runtime;
+        this.revenue = movie.revenue;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -38,6 +38,7 @@ public class MovieService {
         else return Optional.of(result);
     }
 
+    //Get all
     public Optional<Page<Movie>> get(int page, int size, Sort sort) {
         Pageable request = PageRequest.of(page, size, sort);
         Page<Movie> result = movies.findAll(request);
@@ -48,10 +49,24 @@ public class MovieService {
         else return Optional.of(result);
     }
 
+    //Create one
+    public Optional<Movie> post(Movie movie) {
+        return Optional.of(movies.save(movie));
+    }
+
+    //Update one
+    public Optional<Movie> patch(Movie movie){
+        Movie movieEdit = movies.findById(movie.getId()).get();
+        movieEdit.updateMovie(movie);
+        return Optional.of(this.movies.save(movieEdit));
+    }
+
+    //Get one
     public Optional<Movie> get(String id) {
         return movies.findById(id);
     }
 
+    //Delete one
     public void delete(String id) {
         movies.deleteById(id);
     }

@@ -1,6 +1,7 @@
 package gal.usc.etse.grei.es.project.controller;
 
 import gal.usc.etse.grei.es.project.model.Movie;
+import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -77,6 +79,34 @@ public class MovieController {
     )
     ResponseEntity<Movie> get(@PathVariable("id") String id) {
         return ResponseEntity.of(movies.get(id));
+    }
+
+    //Create movie
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Movie> post(@RequestBody @Valid Movie movie) {
+        try {
+            if(movies.get(movie.getId()).isPresent()){
+                return ResponseEntity.status(409).build();
+            }
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.of(movies.post(movie));
+    }
+
+    //Modify movie
+    @PatchMapping(
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Movie> patch(@RequestBody @Valid Movie movie) {
+        try {
+            if(movies.get(movie.getId()).isEmpty()){
+                return ResponseEntity.notFound().build();
+            }
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.of(movies.patch(movie));
     }
 
     //Delete one movie
