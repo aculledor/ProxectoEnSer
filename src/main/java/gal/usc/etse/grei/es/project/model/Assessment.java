@@ -20,15 +20,15 @@ public class Assessment {
     @NotNull(message = "The rating can not be null")
     private User user;
     @NotNull(message = "The rating can not be null")
-    private Movie movie;
+    private Film film;
     private String comment;
 
     public Assessment() { }
-    public Assessment(String id, Integer rating, User user, Movie movie, String comment) {
+    public Assessment(String id, Integer rating, User user, Film film, String comment) {
         this.id = id;
         this.rating = rating;
         this.user = user;
-        this.movie = movie;
+        this.film = film;
         this.comment = comment;
     }
 
@@ -41,8 +41,8 @@ public class Assessment {
     public User getUser() {
         return user;
     }
-    public Movie getMovie() {
-        return movie;
+    public Film getMovie() {
+        return film;
     }
     public String getComment() {
         return comment;
@@ -60,8 +60,8 @@ public class Assessment {
         this.user = user;
         return this;
     }
-    public Assessment setMovie(Movie movie) {
-        this.movie = movie;
+    public Assessment setMovie(Film film) {
+        this.film = film;
         return this;
     }
     public Assessment setComment(String comment) {
@@ -72,7 +72,7 @@ public class Assessment {
     public Assessment updateAssessment(Assessment asses){
         this.rating = asses.rating;
         this.user = asses.user;
-        this.movie = asses.movie;
+        this.film = asses.film;
         this.comment = asses.comment;
         return this;
     }
@@ -82,12 +82,12 @@ public class Assessment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Assessment that = (Assessment) o;
-        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(movie, that.movie) && Objects.equals(comment, that.comment);
+        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(film, that.film) && Objects.equals(comment, that.comment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, rating, user, movie, comment);
+        return Objects.hash(id, rating, user, film, comment);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class Assessment {
                 .add("id='" + id + "'")
                 .add("rating=" + rating)
                 .add("user=" + user)
-                .add("movie=" + movie)
+                .add("movie=" + film)
                 .add("comment='" + comment + "'")
                 .toString();
     }

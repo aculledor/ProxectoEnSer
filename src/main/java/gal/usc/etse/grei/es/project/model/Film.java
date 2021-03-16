@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 
 @Document(collection = "movies")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Movie {
+public class Film {
     @Id
     @NotBlank(message = "The id can not be empty")
     private String id;
@@ -32,9 +32,9 @@ public class Movie {
     private Integer runtime;
     private Long revenue;
 
-    public Movie() { }
+    public Film() { }
 
-    public Movie(String id, String title, String overview, String tagline, Collection collection, List<String> genres, Date releaseDate, List<String> keywords, List<Producer> producers, List<Crew> crew, List<Cast> cast, List<Resource> resources, Long budget, Status status, Integer runtime, Long revenue) {
+    public Film(String id, String title, String overview, String tagline, Collection collection, List<String> genres, Date releaseDate, List<String> keywords, List<Producer> producers, List<Crew> crew, List<Cast> cast, List<Resource> resources, Long budget, Status status, Integer runtime, Long revenue) {
         this.id = id;
         this.title = title;
         this.overview = overview;
@@ -57,7 +57,7 @@ public class Movie {
         return id;
     }
 
-    public Movie setId(String id) {
+    public Film setId(String id) {
         this.id = id;
         return this;
     }
@@ -66,7 +66,7 @@ public class Movie {
         return title;
     }
 
-    public Movie setTitle(String title) {
+    public Film setTitle(String title) {
         this.title = title;
         return this;
     }
@@ -75,7 +75,7 @@ public class Movie {
         return overview;
     }
 
-    public Movie setOverview(String overview) {
+    public Film setOverview(String overview) {
         this.overview = overview;
         return this;
     }
@@ -84,7 +84,7 @@ public class Movie {
         return tagline;
     }
 
-    public Movie setTagline(String tagline) {
+    public Film setTagline(String tagline) {
         this.tagline = tagline;
         return this;
     }
@@ -93,7 +93,7 @@ public class Movie {
         return collection;
     }
 
-    public Movie setCollection(Collection collection) {
+    public Film setCollection(Collection collection) {
         this.collection = collection;
         return this;
     }
@@ -102,7 +102,7 @@ public class Movie {
         return genres;
     }
 
-    public Movie setGenres(List<String> genres) {
+    public Film setGenres(List<String> genres) {
         this.genres = genres;
         return this;
     }
@@ -111,7 +111,7 @@ public class Movie {
         return releaseDate;
     }
 
-    public Movie setReleaseDate(Date releaseDate) {
+    public Film setReleaseDate(Date releaseDate) {
         this.releaseDate = releaseDate;
         return this;
     }
@@ -120,7 +120,7 @@ public class Movie {
         return keywords;
     }
 
-    public Movie setKeywords(List<String> keywords) {
+    public Film setKeywords(List<String> keywords) {
         this.keywords = keywords;
         return this;
     }
@@ -129,7 +129,7 @@ public class Movie {
         return producers;
     }
 
-    public Movie setProducers(List<Producer> producers) {
+    public Film setProducers(List<Producer> producers) {
         this.producers = producers;
         return this;
     }
@@ -138,7 +138,7 @@ public class Movie {
         return crew;
     }
 
-    public Movie setCrew(List<Crew> crew) {
+    public Film setCrew(List<Crew> crew) {
         this.crew = crew;
         return this;
     }
@@ -147,7 +147,7 @@ public class Movie {
         return cast;
     }
 
-    public Movie setCast(List<Cast> cast) {
+    public Film setCast(List<Cast> cast) {
         this.cast = cast;
         return this;
     }
@@ -156,7 +156,7 @@ public class Movie {
         return resources;
     }
 
-    public Movie setResources(List<Resource> resources) {
+    public Film setResources(List<Resource> resources) {
         this.resources = resources;
         return this;
     }
@@ -165,7 +165,7 @@ public class Movie {
         return budget;
     }
 
-    public Movie setBudget(Long budget) {
+    public Film setBudget(Long budget) {
         this.budget = budget;
         return this;
     }
@@ -174,7 +174,7 @@ public class Movie {
         return status;
     }
 
-    public Movie setStatus(Status status) {
+    public Film setStatus(Status status) {
         this.status = status;
         return this;
     }
@@ -183,7 +183,7 @@ public class Movie {
         return runtime;
     }
 
-    public Movie setRuntime(Integer runtime) {
+    public Film setRuntime(Integer runtime) {
         this.runtime = runtime;
         return this;
     }
@@ -192,27 +192,27 @@ public class Movie {
         return revenue;
     }
 
-    public Movie setRevenue(Long revenue) {
+    public Film setRevenue(Long revenue) {
         this.revenue = revenue;
         return this;
     }
 
-    public Movie updateMovie(Movie movie){
-        this.title = movie.title;
-        this.overview = movie.overview;
-        this.tagline = movie.tagline;
-        this.collection = movie.collection;
-        this.genres = movie.genres;
-        this.releaseDate = movie.releaseDate;
-        this.keywords = movie.keywords;
-        this.producers = movie.producers;
-        this.crew = movie.crew;
-        this.cast = movie.cast;
-        this.resources = movie.resources;
-        this.budget = movie.budget;
-        this.status = movie.status;
-        this.runtime = movie.runtime;
-        this.revenue = movie.revenue;
+    public Film updateMovie(Film film){
+        this.title = film.title;
+        this.overview = film.overview;
+        this.tagline = film.tagline;
+        this.collection = film.collection;
+        this.genres = film.genres;
+        this.releaseDate = film.releaseDate;
+        this.keywords = film.keywords;
+        this.producers = film.producers;
+        this.crew = film.crew;
+        this.cast = film.cast;
+        this.resources = film.resources;
+        this.budget = film.budget;
+        this.status = film.status;
+        this.runtime = film.runtime;
+        this.revenue = film.revenue;
         return this;
     }
 
@@ -220,8 +220,8 @@ public class Movie {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Movie movie = (Movie) o;
-        return Objects.equals(id, movie.id) && Objects.equals(title, movie.title) && Objects.equals(overview, movie.overview) && Objects.equals(tagline, movie.tagline) && Objects.equals(collection, movie.collection) && Objects.equals(genres, movie.genres) && Objects.equals(releaseDate, movie.releaseDate) && Objects.equals(keywords, movie.keywords) && Objects.equals(producers, movie.producers) && Objects.equals(crew, movie.crew) && Objects.equals(cast, movie.cast) && Objects.equals(resources, movie.resources) && Objects.equals(budget, movie.budget) && status == movie.status && Objects.equals(runtime, movie.runtime) && Objects.equals(revenue, movie.revenue);
+        Film film = (Film) o;
+        return Objects.equals(id, film.id) && Objects.equals(title, film.title) && Objects.equals(overview, film.overview) && Objects.equals(tagline, film.tagline) && Objects.equals(collection, film.collection) && Objects.equals(genres, film.genres) && Objects.equals(releaseDate, film.releaseDate) && Objects.equals(keywords, film.keywords) && Objects.equals(producers, film.producers) && Objects.equals(crew, film.crew) && Objects.equals(cast, film.cast) && Objects.equals(resources, film.resources) && Objects.equals(budget, film.budget) && status == film.status && Objects.equals(runtime, film.runtime) && Objects.equals(revenue, film.revenue);
     }
 
     @Override
@@ -231,7 +231,7 @@ public class Movie {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", Movie.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", Film.class.getSimpleName() + "[", "]")
                 .add("id='" + id + "'")
                 .add("title='" + title + "'")
                 .add("overview='" + overview + "'")

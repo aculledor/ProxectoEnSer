@@ -21,15 +21,14 @@ public class MovieService {
         this.assessments = assessments;
     }
 
-    public Optional<Page<Movie>> get(int page, int size, Sort sort, String title, List<String> keywords, List<String> genres, List<Crew> crew, List<Cast> cast, List<Producer> producers, Date releaseDate) {
+    public Optional<Page<Film>> get(int page, int size, Sort sort, String title, List<String> keywords, List<String> genres, List<Crew> crew, List<Cast> cast, List<Producer> producers, Date releaseDate) {
         Pageable request = PageRequest.of(page, size, sort);
 
         ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
 
-        Example<Movie> filter = Example.of(new Movie().setTitle(title).setKeywords(keywords).setGenres(genres).setCrew(crew).setCast(cast).setProducers(producers).setReleaseDate(releaseDate), matcher);
+        Example<Film> filter = Example.of(new Film().setTitle(title).setKeywords(keywords).setGenres(genres).setCrew(crew).setCast(cast).setProducers(producers).setReleaseDate(releaseDate), matcher);
 
-        //Non funciona e non sei porqué
-        Page<Movie> result = movies.findAll(filter, request);
+        Page<Film> result = movies.findAll(filter, request);
 
         if(result.isEmpty())
             return Optional.empty();
@@ -38,9 +37,9 @@ public class MovieService {
     }
 
     //Get all
-    public Optional<Page<Movie>> get(int page, int size, Sort sort) {
+    public Optional<Page<Film>> get(int page, int size, Sort sort) {
         Pageable request = PageRequest.of(page, size, sort);
-        Page<Movie> result = movies.findAll(request);
+        Page<Film> result = movies.findAll(request);
 
         if(result.isEmpty())
             return Optional.empty();
@@ -55,7 +54,7 @@ public class MovieService {
                 .withIgnoreCase()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
         Example<Assessment> filter = Example.of(new Assessment()
-                .setMovie(new Movie().setId(id)),matcher);
+                .setMovie(new Film().setId(id)),matcher);
         Page<Assessment> result = assessments.findAll(filter, request);
 
         if(result.isEmpty())
@@ -64,19 +63,19 @@ public class MovieService {
     }
 
     //Create one
-    public Optional<Movie> post(Movie movie) {
-        return Optional.of(movies.save(movie));
+    public Optional<Film> post(Film film) {
+        return Optional.of(movies.save(film));
     }
 
     //Update one
-    public Optional<Movie> patch(Movie movie){
-        Movie movieEdit = movies.findById(movie.getId()).get();
-        movieEdit.updateMovie(movie);
-        return Optional.of(this.movies.save(movieEdit));
+    public Optional<Film> patch(Film film){
+        Film filmEdit = movies.findById(film.getId()).get();
+        filmEdit.updateMovie(film);
+        return Optional.of(this.movies.save(filmEdit));
     }
 
     //Get one
-    public Optional<Movie> get(String id) {
+    public Optional<Film> get(String id) {
         return movies.findById(id);
     }
 

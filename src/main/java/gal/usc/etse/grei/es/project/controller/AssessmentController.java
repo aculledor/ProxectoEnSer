@@ -1,7 +1,7 @@
 package gal.usc.etse.grei.es.project.controller;
 
 import gal.usc.etse.grei.es.project.model.Assessment;
-import gal.usc.etse.grei.es.project.model.Movie;
+import gal.usc.etse.grei.es.project.model.Film;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
@@ -72,8 +72,8 @@ public class AssessmentController {
             if(assessments.get(assessment.getId()).isPresent())
                 return ResponseEntity.status(409).build();
             User auxUser = users.get(assessment.getUser().getEmail()).get();
-            Movie auxMovie = movies.get(assessment.getMovie().getId()).get();
-            if(!auxUser.getName().equals(assessment.getUser().getName()) || !auxMovie.getTitle().equals(assessment.getMovie().getTitle()))
+            Film auxFilm = movies.get(assessment.getMovie().getId()).get();
+            if(!auxUser.getName().equals(assessment.getUser().getName()) || !auxFilm.getTitle().equals(assessment.getMovie().getTitle()))
                 return ResponseEntity.badRequest().build();
             return ResponseEntity.of(assessments.post(assessment));
         }catch (Exception e){

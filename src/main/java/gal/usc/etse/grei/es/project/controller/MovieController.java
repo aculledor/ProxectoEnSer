@@ -48,7 +48,7 @@ public class MovieController {
     //Get all movies
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
-    ) ResponseEntity<Page<Movie>> get(
+    ) ResponseEntity<Page<Film>> get(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -81,7 +81,7 @@ public class MovieController {
             path = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Movie> get(@PathVariable("id") String id) {
+    ResponseEntity<Film> get(@PathVariable("id") String id) {
         return ResponseEntity.of(movies.get(id));
     }
 
@@ -111,27 +111,27 @@ public class MovieController {
 
     //Create movie
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Movie> post(@RequestBody @Valid Movie movie) {
+    ResponseEntity<Film> post(@RequestBody @Valid Film film) {
         try {
-            if(movies.get(movie.getId()).isPresent()){
+            if(movies.get(film.getId()).isPresent()){
                 return ResponseEntity.status(409).build();
             }
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.of(movies.post(movie));
+        return ResponseEntity.of(movies.post(film));
     }
 
     //Modify movie
     @PatchMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Movie> patch(@RequestBody @Valid Movie movie) {
+    ResponseEntity<Film> patch(@RequestBody @Valid Film film) {
         try {
-            if(movies.get(movie.getId()).isEmpty()){
+            if(movies.get(film.getId()).isEmpty()){
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.of(movies.patch(movie));
+            return ResponseEntity.of(movies.patch(film));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
