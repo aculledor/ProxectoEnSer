@@ -1,15 +1,13 @@
 package gal.usc.etse.grei.es.project.service;
 
-import gal.usc.etse.grei.es.project.model.Movie;
+import gal.usc.etse.grei.es.project.model.*;
+import gal.usc.etse.grei.es.project.model.Date;
 import gal.usc.etse.grei.es.project.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class MovieService {
@@ -18,6 +16,26 @@ public class MovieService {
     @Autowired
     public MovieService(MovieRepository movies) {
         this.movies = movies;
+    }
+
+    public Optional<Page<Movie>> get(int page, int size, Sort sort, String title, String keyword, String genre, String credits, String releaseDate) {
+        Pageable request = PageRequest.of(page, size, sort);
+        ArrayList<String> keywords = new ArrayList<>(); keywords.add(keyword);
+        ArrayList<String> genres = new ArrayList<>(); genres.add(genre);
+        ArrayList<Crew> crew = new ArrayList<>(); crew.add((Crew) new Crew().setName(credits));
+        ArrayList<Cast> cast = new ArrayList<>(); cast.add((Cast) new Cast().setName(credits));
+        Date date = new Date(releaseDate);
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+        Example<Movie> filter = Example.of(new Movie().setTitle(title)
+                .setKeywords(keywords).setGenres(genres).setCrew(crew).setCast(cast).setReleaseDate(date), matcher);
+        Page<Movie> result = movies.findAll(filter, request);
+
+        if(result.isEmpty())
+            return Optional.empty();
+
+        else return Optional.of(result);
     }
 
     public Optional<Page<Movie>> get(int page, int size, Sort sort) {

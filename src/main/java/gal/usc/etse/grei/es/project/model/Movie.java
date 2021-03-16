@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -12,7 +13,9 @@ import java.util.StringJoiner;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Movie {
     @Id
+    @NotBlank(message = "The id can not be empty")
     private String id;
+    @NotBlank(message = "The title can not be empty")
     private String title;
     private String overview;
     private String tagline;

@@ -44,6 +44,32 @@ public class MovieController {
         return ResponseEntity.of(movies.get(page, size, Sort.by(criteria)));
     }
 
+//    //Get all movies
+//    @GetMapping(
+//            produces = MediaType.APPLICATION_JSON_VALUE
+//    ) ResponseEntity<Page<Movie>> get(
+//            @RequestParam(name = "page", defaultValue = "0") int page,
+//            @RequestParam(name = "size", defaultValue = "20") int size,
+//            @RequestParam(name = "sort", defaultValue = "") List<String> sort,
+//            @RequestParam(name = "title", defaultValue = "") String title,
+//            @RequestParam(name = "keyword", defaultValue = "") String keyword,
+//            @RequestParam(name = "genre", defaultValue = "") String genre,
+//            @RequestParam(name = "credits", defaultValue = "") String credits,
+//            @RequestParam(name = "date", defaultValue = "") String releaseDate
+//    ) {
+//        List<Sort.Order> criteria = sort.stream().map(string -> {
+//            if(string.startsWith("+")){
+//                return Sort.Order.asc(string.substring(1));
+//            } else if (string.startsWith("-")) {
+//                return Sort.Order.desc(string.substring(1));
+//            } else return null;
+//        })
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.of(movies.get(page, size, Sort.by(criteria), title, keyword, genre, credits, releaseDate));
+//    }
+
     //Get one movie
     @GetMapping(
             path = "{id}",
