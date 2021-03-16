@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -11,9 +13,13 @@ import java.util.StringJoiner;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Assessment {
     @Id
+    @NotBlank(message = "The id can not be empty")
     private String id;
+    @NotNull(message = "The rating can not be null")
     private Integer rating;
+    @NotNull(message = "The rating can not be null")
     private User user;
+    @NotNull(message = "The rating can not be null")
     private Movie movie;
     private String comment;
 
@@ -60,6 +66,14 @@ public class Assessment {
     }
     public Assessment setComment(String comment) {
         this.comment = comment;
+        return this;
+    }
+
+    public Assessment updateAssessment(Assessment asses){
+        this.rating = asses.rating;
+        this.user = asses.user;
+        this.movie = asses.movie;
+        this.comment = asses.comment;
         return this;
     }
 

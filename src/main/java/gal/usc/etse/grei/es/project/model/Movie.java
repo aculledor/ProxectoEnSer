@@ -198,7 +198,6 @@ public class Movie {
     }
 
     public Movie updateMovie(Movie movie){
-        this.id = movie.id;
         this.title = movie.title;
         this.overview = movie.overview;
         this.tagline = movie.tagline;
