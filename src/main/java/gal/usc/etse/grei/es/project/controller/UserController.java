@@ -60,28 +60,31 @@ public class UserController {
         return ResponseEntity.of(users.get(email));
     }
 
-    //Get movie's assessments
+    //Get user's assessments
     @GetMapping(
             path = "{email}/assessments",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Page<Assessment>> get(
+    ResponseEntity<Page<Assessment>> getAssessments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
-            @PathVariable("email") String email,
-            @RequestBody @Valid Assessment assessment
+            @PathVariable("email") String email
     ) {
-        List<Sort.Order> criteria = sort.stream().map(string -> {
-            if(string.startsWith("+")){
-                return Sort.Order.asc(string.substring(1));
-            } else if (string.startsWith("-")) {
-                return Sort.Order.desc(string.substring(1));
-            } else return null;
-        })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        return ResponseEntity.of(users.getAssessments(page, size, Sort.by(criteria), email));
+        try {
+            List<Sort.Order> criteria = sort.stream().map(string -> {
+                if(string.startsWith("+")){
+                    return Sort.Order.asc(string.substring(1));
+                } else if (string.startsWith("-")) {
+                    return Sort.Order.desc(string.substring(1));
+                } else return null;
+            })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            return ResponseEntity.of(users.getAssessments(page, size, Sort.by(criteria), email));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     //Create user
@@ -91,10 +94,10 @@ public class UserController {
             if(users.get(user.getEmail()).isPresent()){
                 return ResponseEntity.status(409).build();
             }
+            return ResponseEntity.of(users.post(user));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.of(users.post(user));
     }
 
     //Modify user
@@ -106,10 +109,10 @@ public class UserController {
             if(users.get(user.getEmail()).isEmpty()){
                 return ResponseEntity.notFound().build();
             }
+            return ResponseEntity.of(users.patch(user));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.of(users.patch(user));
     }
 
     //Add friend to user
@@ -124,10 +127,10 @@ public class UserController {
             if(!users.get(friend.getEmail()).get().equals(friend)){
                 return ResponseEntity.status(409).build();
             }
+            return ResponseEntity.of(users.patch(email, friend));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.of(users.patch(email, friend));
     }
 
     //Delete user
