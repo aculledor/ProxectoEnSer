@@ -11,8 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -30,24 +30,26 @@ public class UserController {
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Page<User>> get(
+    ResponseEntity<Page<User>> getAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
             @RequestParam(name = "email", defaultValue = "") String email,
             @RequestParam(name = "name", defaultValue = "") String name
     ) {
-        List<Sort.Order> criteria = sort.stream().map(string -> {
-            if(string.startsWith("+")){
-                return Sort.Order.asc(string.substring(1));
-            } else if (string.startsWith("-")) {
-                return Sort.Order.desc(string.substring(1));
-            } else return null;
-        })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        try{
+            List<Sort.Order> criteria = sort.stream().map(string -> {
+                if(string.startsWith("+")){
+                    return Sort.Order.asc(string.substring(1));
+                } else if (string.startsWith("-")) {
+                    return Sort.Order.desc(string.substring(1));
+                } else return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
 
-        return ResponseEntity.of(users.get(page, size, Sort.by(criteria), email, name));
+            return ResponseEntity.of(users.get(page, size, Sort.by(criteria), email, name));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     //Get single user
@@ -55,9 +57,14 @@ public class UserController {
             path = "{email}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<User> get(@PathVariable("email") String email) {
-        if (email.equals("tea")){return ResponseEntity.status(418).build();}
-        return ResponseEntity.of(users.get(email));
+    ResponseEntity<User> getUser(@PathVariable("email") String email) {
+        try{
+            if (email.equals("tea")){return ResponseEntity.status(418).build();}
+            else if(users.get(email).isEmpty()){return ResponseEntity.notFound().build();}
+            return ResponseEntity.of(users.get(email));
+        }catch(Exception e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     //Get user's assessments
@@ -72,15 +79,15 @@ public class UserController {
             @PathVariable("email") String email
     ) {
         try {
+            if(users.get(email).isEmpty()){return ResponseEntity.notFound().build();}
             List<Sort.Order> criteria = sort.stream().map(string -> {
                 if(string.startsWith("+")){
                     return Sort.Order.asc(string.substring(1));
                 } else if (string.startsWith("-")) {
                     return Sort.Order.desc(string.substring(1));
                 } else return null;
-            })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
             return ResponseEntity.of(users.getAssessments(page, size, Sort.by(criteria), email));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
@@ -91,43 +98,35 @@ public class UserController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<User> post(@RequestBody @Valid User user) {
         try {
-            if(users.get(user.getEmail()).isPresent()){
-                return ResponseEntity.status(409).build();
-            }
+            if(users.get(user.getEmail()).isPresent()){ return ResponseEntity.status(409).body(users.get(user.getEmail()).get()); }
             return ResponseEntity.of(users.post(user));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
     }
 
-    //Modify user
-    @PatchMapping(
+    //Update user
+    @PutMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<User> patch(@RequestBody @Valid User user) {
+    ResponseEntity<User> updateUser(@RequestBody @Valid User user) {
         try {
-            if(users.get(user.getEmail()).isEmpty()){
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.of(users.patch(user));
+            if(users.get(user.getEmail()).isEmpty()){ return ResponseEntity.notFound().build(); }
+            return ResponseEntity.of(users.updateUser(user));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
     }
 
     //Add friend to user
-    @PatchMapping(
+    @PutMapping(
             path = "{email}/friends",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<User> patch(@PathVariable("email") String email, @RequestBody @Valid User friend) {
+    ResponseEntity<User> addFriend(@PathVariable("email") String email, @RequestBody @Valid User friend) {
         try {
-            if(users.get(friend.getEmail()).isEmpty() || users.get(email).isEmpty()){
-                return ResponseEntity.notFound().build();
-            }
-            if(!users.get(friend.getEmail()).get().equals(friend)){
-                return ResponseEntity.status(409).build();
-            }
-            return ResponseEntity.of(users.patch(email, friend));
+            if(users.get(friend.getEmail()).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            else if(!users.get(friend.getEmail()).get().equals(friend)){ return ResponseEntity.status(409).build(); }
+            return ResponseEntity.of(users.addFriend(email, friend));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -135,22 +134,26 @@ public class UserController {
 
     //Delete user
     @DeleteMapping(path = "{email}")
-    ResponseEntity<Object> delete(@PathVariable("email") String email) {
+    ResponseEntity<Object> deleteUser(@PathVariable("email") String email) {
         try{
-            users.delete(email);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            users.deleteUser(email);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
     //Delete friend
     @DeleteMapping(path = "{email}/friends/{friendEmail}")
-    ResponseEntity<User> delete(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
+    ResponseEntity<User> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
         try{
-            return ResponseEntity.of(users.delete(email, friend));
-        } catch (Exception e) {
+            if(users.get(email).isEmpty() || users.get(email).get().getFriend(friend).getEmail().isEmpty()){ return ResponseEntity.notFound().build(); }
+            return ResponseEntity.of(users.deleteFriend(email, friend));
+        } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

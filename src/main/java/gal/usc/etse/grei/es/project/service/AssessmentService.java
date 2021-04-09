@@ -42,7 +42,7 @@ public class AssessmentService {
     }
 
     //Update one
-    public Optional<Assessment> patch(Assessment asses){
+    public Optional<Assessment> updateAssessment(Assessment asses){
         Assessment assesEdit = assessments.findById(asses.getId()).get();
         assesEdit.updateAssessment(asses);
         return Optional.of(this.assessments.save(assesEdit));

@@ -62,26 +62,26 @@ public class UserService {
     }
 
     //Update one
-    public Optional<User> patch(User user){
+    public Optional<User> updateUser(User user){
         User userEdit = users.findById(user.getEmail()).get();
         userEdit.updateUser(user);
         return Optional.of(this.users.save(userEdit));
     }
 
     //Add friend
-    public Optional<User> patch(String mail, User friend){
+    public Optional<User> addFriend(String mail, User friend){
         User userEdit = users.findById(mail).get();
         userEdit.addFriend(friend);
         return Optional.of(this.users.save(userEdit));
     }
 
     //Delete one
-    public void delete(String email) {
+    public void deleteUser(String email) {
         users.deleteById(email);
     }
 
     //Delete friend
-    public Optional<User> delete(String email, String friend) {
+    public Optional<User> deleteFriend(String email, String friend) {
         Optional<User> userEdit = users.findById(email);
 
         if(userEdit.isEmpty())

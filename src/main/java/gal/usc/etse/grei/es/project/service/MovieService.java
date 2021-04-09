@@ -21,7 +21,8 @@ public class MovieService {
         this.assessments = assessments;
     }
 
-    public Optional<Page<Film>> get(int page, int size, Sort sort, String title, List<String> keywords, List<String> genres, List<Crew> crew, List<Cast> cast, List<Producer> producers, Date releaseDate) {
+    //Get all with options
+    public Optional<Page<Film>> getAll(int page, int size, Sort sort, String title, List<String> keywords, List<String> genres, List<Crew> crew, List<Cast> cast, List<Producer> producers, Date releaseDate) {
         Pageable request = PageRequest.of(page, size, sort);
 
         ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
@@ -29,17 +30,6 @@ public class MovieService {
         Example<Film> filter = Example.of(new Film().setTitle(title).setKeywords(keywords).setGenres(genres).setCrew(crew).setCast(cast).setProducers(producers).setReleaseDate(releaseDate), matcher);
 
         Page<Film> result = movies.findAll(filter, request);
-
-        if(result.isEmpty())
-            return Optional.empty();
-
-        else return Optional.of(result);
-    }
-
-    //Get all
-    public Optional<Page<Film>> get(int page, int size, Sort sort) {
-        Pageable request = PageRequest.of(page, size, sort);
-        Page<Film> result = movies.findAll(request);
 
         if(result.isEmpty())
             return Optional.empty();
@@ -63,12 +53,12 @@ public class MovieService {
     }
 
     //Create one
-    public Optional<Film> post(Film film) {
+    public Optional<Film> createMovie(Film film) {
         return Optional.of(movies.save(film));
     }
 
     //Update one
-    public Optional<Film> patch(Film film){
+    public Optional<Film> updateMovie(Film film){
         Film filmEdit = movies.findById(film.getId()).get();
         filmEdit.updateMovie(film);
         return Optional.of(this.movies.save(filmEdit));

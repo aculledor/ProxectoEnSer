@@ -92,6 +92,14 @@ public class User {
         return this;
     }
 
+    public User getFriend(String friendId){
+        User aux = this.friends.stream().filter(user ->
+                user.getEmail().equals(friendId)
+        ).findFirst().get();
+
+        return aux;
+    }
+
     public User removeFriend(String friendId){
         User aux = this.friends.stream().filter(user ->
                 user.getEmail().equals(friendId)
