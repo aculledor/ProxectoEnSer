@@ -29,7 +29,7 @@ public class UserService {
     }
 
     //Get all
-    public Optional<Page<User>> get(int page, int size, Sort sort, String email, String name) {
+    public Optional<Page<User>> getAll(int page, int size, Sort sort, String email, String name) {
         Pageable request = PageRequest.of(page, size, sort);
 
         ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
@@ -106,7 +106,8 @@ public class UserService {
     }
 
     //Add friend
-    public Optional<Friendship> addFriend(Friendship friendship){
+    public Optional<Friendship> addFriend(String email, String friend){
+        Friendship friendship = new Friendship().setUser(email).setFriend(friend).setConfirmed(false);
         return Optional.of(this.friendships.save(friendship.setSince(new Date())));
     }
 

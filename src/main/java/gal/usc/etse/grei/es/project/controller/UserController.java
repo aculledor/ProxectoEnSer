@@ -49,7 +49,7 @@ public class UserController {
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            return ResponseEntity.of(users.get(page, size, Sort.by(criteria), email, name));
+            return ResponseEntity.of(users.getAll(page, size, Sort.by(criteria), email, name));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -187,8 +187,8 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Friendship> getFriendship(
-            @RequestParam(name = "email", defaultValue = "") String email,
-            @RequestParam(name = "friendEmail", defaultValue = "") String friendEmail
+            @PathVariable("email") String email,
+            @PathVariable("friendEmail") String friendEmail
     ) {
         try{
             return ResponseEntity.of(users.getFriendship(email, friendEmail));
@@ -199,13 +199,16 @@ public class UserController {
 
     //Add friend to user
     @PostMapping(
-            path = "{email}/friends",
+            path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Friendship> addFriend(@PathVariable("email") String email, @RequestBody @Valid Friendship friendship) {
+    ResponseEntity<Friendship> addFriend(
+            @PathVariable("email") String email,
+            @PathVariable("friendEmail") String friendEmail
+    ) {
         try {
-            if(users.get(friendship.getFriend()).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
-            if(friendship.getConfirmed()){ return ResponseEntity.status(422).build(); }
-            return ResponseEntity.of(users.addFriend(friendship));
+            if(users.get(friendEmail).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(users.getFriendship(email, friendEmail).isPresent()){ return ResponseEntity.status(409).body(users.getFriendship(email, friendEmail).get()); }
+            return ResponseEntity.of(users.addFriend(email, friendEmail));
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }

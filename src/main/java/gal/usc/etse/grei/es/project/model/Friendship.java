@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
@@ -13,8 +14,10 @@ import java.util.StringJoiner;
 @Document(collection = "friends")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Friendship {
+    @Transient
+    public static final String SEQUENCE_NAME = "friendship_sequence";
     @Id
-    private String id;
+    public long id;
     @NotBlank(message = "The friend field can not be empty")
     private String user;
     @NotBlank(message = "The friend field can not be empty")
@@ -25,15 +28,14 @@ public class Friendship {
     public Friendship() {
     }
 
-    public Friendship(String id, String user, String friend, Boolean confirmed, Date since) {
-        this.id = id;
+    public Friendship(String user, String friend, Boolean confirmed, Date since) {
         this.user = user;
         this.friend = friend;
         this.confirmed = confirmed;
         this.since = since;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
     public String getUser() {
@@ -49,7 +51,7 @@ public class Friendship {
         return since;
     }
 
-    public Friendship setId(String id) {
+    public Friendship setId(long id) {
         this.id = id;
         return this;
     }
