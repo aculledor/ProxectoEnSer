@@ -1,5 +1,7 @@
 package gal.usc.etse.grei.es.project.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.model.Date;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
@@ -62,6 +64,13 @@ public class MovieService {
         Film filmEdit = movies.findById(film.getId()).get();
         filmEdit.updateMovie(film);
         return Optional.of(this.movies.save(filmEdit));
+    }
+
+    //Modify one
+    public Optional<Film> modifyMovie(String id,  List<Map<String, Object>> updates) throws JsonPatchException {
+        Film movieEdit = movies.findById(id).get();
+        PatchUtils aux = new PatchUtils(new ObjectMapper());
+        return Optional.of(this.movies.save(aux.patch(movieEdit, updates)));
     }
 
     //Get one

@@ -221,7 +221,7 @@ public class Film {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Film film = (Film) o;
-        return Objects.equals(id, film.id) && Objects.equals(title, film.title) && Objects.equals(overview, film.overview) && Objects.equals(tagline, film.tagline) && Objects.equals(collection, film.collection) && Objects.equals(genres, film.genres) && Objects.equals(releaseDate, film.releaseDate) && Objects.equals(keywords, film.keywords) && Objects.equals(producers, film.producers) && Objects.equals(crew, film.crew) && Objects.equals(cast, film.cast) && Objects.equals(resources, film.resources) && Objects.equals(budget, film.budget) && status == film.status && Objects.equals(runtime, film.runtime) && Objects.equals(revenue, film.revenue);
+        return Objects.equals(id, film.id);
     }
 
     @Override

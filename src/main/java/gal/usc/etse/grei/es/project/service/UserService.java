@@ -1,5 +1,8 @@
 package gal.usc.etse.grei.es.project.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
@@ -8,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 @Service
 public class UserService {
@@ -66,6 +71,13 @@ public class UserService {
         User userEdit = users.findById(user.getEmail()).get();
         userEdit.updateUser(user);
         return Optional.of(this.users.save(userEdit));
+    }
+
+    //Modify one
+    public Optional<User> modifyUser(String email,  List<Map<String, Object>> updates) throws JsonPatchException {
+        User userEdit = users.findById(email).get();
+        PatchUtils aux = new PatchUtils(new ObjectMapper());
+        return Optional.of(this.users.save(aux.patch(userEdit,updates)));
     }
 
     //Add friend

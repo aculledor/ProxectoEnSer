@@ -1,6 +1,9 @@
 package gal.usc.etse.grei.es.project.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
+import gal.usc.etse.grei.es.project.model.Film;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -46,6 +51,13 @@ public class AssessmentService {
         Assessment assesEdit = assessments.findById(asses.getId()).get();
         assesEdit.updateAssessment(asses);
         return Optional.of(this.assessments.save(assesEdit));
+    }
+
+    //Modify one
+    public Optional<Assessment> modifyMovie(String id, List<Map<String, Object>> updates) throws JsonPatchException {
+        Assessment assessmentEdit = assessments.findById(id).get();
+        PatchUtils aux = new PatchUtils(new ObjectMapper());
+        return Optional.of(this.assessments.save(aux.patch(assessmentEdit, updates)));
     }
 
     //Delete one

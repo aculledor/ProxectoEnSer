@@ -1,5 +1,6 @@
 package gal.usc.etse.grei.es.project.controller;
 
+import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.UserService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -127,6 +129,28 @@ public class UserController {
             if(users.get(friend.getEmail()).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
             else if(!users.get(friend.getEmail()).get().equals(friend)){ return ResponseEntity.status(409).build(); }
             return ResponseEntity.of(users.addFriend(email, friend));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Modify user
+    @PatchMapping(
+            path = "{email}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<User> modifyUser(
+            @PathVariable("email") String email,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0){ return ResponseEntity.status(422).build(); }
+            return ResponseEntity.of(users.modifyUser(email, updates));
+        }catch (JsonPatchException e){
+            return ResponseEntity.status(400).build();
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(422).build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }

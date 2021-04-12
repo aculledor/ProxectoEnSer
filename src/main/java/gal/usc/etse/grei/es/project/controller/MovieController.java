@@ -1,5 +1,6 @@
 package gal.usc.etse.grei.es.project.controller;
 
+import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -127,6 +129,28 @@ public class MovieController {
         try {
             if(movies.get(film.getId()).isEmpty()){return ResponseEntity.notFound().build();}
             return ResponseEntity.of(movies.updateMovie(film));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Modify movie
+    @PatchMapping(
+            path = "{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Film> modifyUser(
+            @PathVariable("id") String id,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if(movies.get(id).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0){ return ResponseEntity.status(422).build(); }
+            return ResponseEntity.of(movies.modifyMovie(id, updates));
+        }catch (JsonPatchException e){
+            return ResponseEntity.status(400).build();
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(422).build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }

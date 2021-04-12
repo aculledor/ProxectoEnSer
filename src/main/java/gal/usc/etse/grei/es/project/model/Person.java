@@ -100,7 +100,7 @@ public class Person {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Person person = (Person) o;
-        return Objects.equals(id, person.id) && Objects.equals(name, person.name) && Objects.equals(country, person.country) && Objects.equals(picture, person.picture) && Objects.equals(biography, person.biography) && Objects.equals(birthday, person.birthday) && Objects.equals(deathday, person.deathday);
+        return Objects.equals(id, person.id) ;
     }
 
     @Override
