@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.controller;
 
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
+import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,20 +121,6 @@ public class UserController {
         }
     }
 
-    //Add friend to user
-    @PutMapping(
-            path = "{email}/friends",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<User> addFriend(@PathVariable("email") String email, @RequestBody @Valid User friend) {
-        try {
-            if(users.get(friend.getEmail()).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
-            else if(!users.get(friend.getEmail()).get().equals(friend)){ return ResponseEntity.status(409).build(); }
-            return ResponseEntity.of(users.addFriend(email, friend));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
     //Modify user
     @PatchMapping(
             path = "{email}",
@@ -168,12 +155,97 @@ public class UserController {
         }
     }
 
+    //Get friendships
+    @GetMapping(
+            path = "{email}/friends",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Page<Friendship>> getFriendships(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "sort", defaultValue = "") List<String> sort,
+            @RequestParam(name = "email", defaultValue = "") String email
+    ) {
+        try{
+            List<Sort.Order> criteria = sort.stream().map(string -> {
+                if(string.startsWith("+")){
+                    return Sort.Order.asc(string.substring(1));
+                } else if (string.startsWith("-")) {
+                    return Sort.Order.desc(string.substring(1));
+                } else return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            return ResponseEntity.of(users.getFriendships(page, size, Sort.by(criteria), email));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Get friendships
+    @GetMapping(
+            path = "{email}/friends/{friendEmail}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Friendship> getFriendship(
+            @RequestParam(name = "email", defaultValue = "") String email,
+            @RequestParam(name = "friendEmail", defaultValue = "") String friendEmail
+    ) {
+        try{
+            return ResponseEntity.of(users.getFriendship(email, friendEmail));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Add friend to user
+    @PostMapping(
+            path = "{email}/friends",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Friendship> addFriend(@PathVariable("email") String email, @RequestBody @Valid Friendship friendship) {
+        try {
+            if(users.get(friendship.getFriend()).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(friendship.getConfirmed()){ return ResponseEntity.status(422).build(); }
+            return ResponseEntity.of(users.addFriend(friendship));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Modify user
+    @PatchMapping(
+            path = "{email}/friends/{friendEmail}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Friendship> modifyFriendship(
+            @PathVariable("email") String email,
+            @PathVariable("friendEmail") String friendEmail,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if(users.getFriendship(email, friendEmail).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(updates.isEmpty()
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/user")).count() > 0
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/friend")).count() > 0
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/since")).count() > 0
+            ){ return ResponseEntity.status(422).build(); }
+            return ResponseEntity.of(users.modifyFriendship(email, friendEmail, updates));
+        }catch (JsonPatchException e){
+            return ResponseEntity.status(400).build();
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(422).build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     //Delete friend
     @DeleteMapping(path = "{email}/friends/{friendEmail}")
-    ResponseEntity<User> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
+    ResponseEntity<Friendship> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
         try{
-            if(users.get(email).isEmpty() || users.get(email).get().getFriend(friend).getEmail().isEmpty()){ return ResponseEntity.notFound().build(); }
-            return ResponseEntity.of(users.deleteFriend(email, friend));
+            if(users.getFriendship(email, friend).isEmpty()){ return ResponseEntity.notFound().build(); }
+            users.deleteFriend(email, friend);
+            return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {

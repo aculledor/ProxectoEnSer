@@ -4,25 +4,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
+import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
+import gal.usc.etse.grei.es.project.repository.FriendshipRepository;
 import gal.usc.etse.grei.es.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 @Service
 public class UserService {
     private final UserRepository users;
     private final AssessmentRepository assessments;
+    private final FriendshipRepository friendships;
 
     @Autowired
-    public UserService(UserRepository users, AssessmentRepository assessments) {
+    public UserService(UserRepository users, AssessmentRepository assessments, FriendshipRepository friendships) {
         this.users = users;
         this.assessments = assessments;
+        this.friendships = friendships;
     }
 
     //Get all
@@ -80,25 +83,42 @@ public class UserService {
         return Optional.of(this.users.save(aux.patch(userEdit,updates)));
     }
 
-    //Add friend
-    public Optional<User> addFriend(String mail, User friend){
-        User userEdit = users.findById(mail).get();
-        userEdit.addFriend(friend);
-        return Optional.of(this.users.save(userEdit));
-    }
-
     //Delete one
     public void deleteUser(String email) {
         users.deleteById(email);
     }
 
-    //Delete friend
-    public Optional<User> deleteFriend(String email, String friend) {
-        Optional<User> userEdit = users.findById(email);
+    //Get friends
+    public Optional<Page<Friendship>> getFriendships(int page, int size, Sort sort, String user){
+        Pageable request = PageRequest.of(page, size, sort);
+        Page<Friendship> result = friendships.findByUserOrFriend(user, user, request);
 
-        if(userEdit.isEmpty())
+        if(result.isEmpty())
             return Optional.empty();
+        return Optional.of(result);
+    }
 
-        return Optional.of(this.users.save(userEdit.get().removeFriend(friend)));
+    //Get friendship
+    public Optional<Friendship> getFriendship(String email, String friend){
+        Optional<Friendship> aux = friendships.findByUserAndFriend(email, friend);
+        if(aux.isEmpty()){aux = friendships.findByUserAndFriend(friend, email);}
+        return aux;
+    }
+
+    //Add friend
+    public Optional<Friendship> addFriend(Friendship friendship){
+        return Optional.of(this.friendships.save(friendship.setSince(new Date())));
+    }
+
+    //Delete friendship
+    public void deleteFriend(String email, String friend) {
+        this.friendships.delete(this.getFriendship(email, friend).get());
+    }
+
+    //Modify friendship
+    public Optional<Friendship> modifyFriendship(String email, String friend, List<Map<String, Object>> updates) throws JsonPatchException {
+        Friendship userFriendship = this.friendships.findByUserAndFriend(email, friend).get();
+        PatchUtils aux = new PatchUtils(new ObjectMapper());
+        return Optional.of(this.friendships.save(aux.patch(userFriendship,updates)));
     }
 }

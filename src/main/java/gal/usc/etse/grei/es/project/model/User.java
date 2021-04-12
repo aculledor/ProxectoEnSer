@@ -6,32 +6,34 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
 
 @Document(collection = "users")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
     @Id
-    @NotBlank(message = "The email can not be empty")
+    @NotBlank(message = "The email field can not be empty")
     @Email
     private String email;
-    @NotBlank(message = "The name can not be empty")
     private String name;
     private String country;
     private String picture;
     private Date birthday;
-    private List<User> friends;
+    @NotBlank(message = "The password field can not be empty")
+    private String password;
+    private List<String> roles;
 
     public User() {}
-    public User(String email, String name, String country, String picture, Date birthday, List<User> friends) {
+
+    public User(String email, String name, String country, String picture, Date birthday, String password, List<String> roles) {
         this.email = email;
         this.name = name;
         this.country = country;
         this.picture = picture;
         this.birthday = birthday;
-        this.friends = friends;
+        this.password = password;
+        this.roles = roles;
     }
 
     public String getEmail() {
@@ -49,8 +51,11 @@ public class User {
     public Date getBirthday() {
         return birthday;
     }
-    public List<User> getFriends() {
-        return friends;
+    public String getPassword() {
+        return password;
+    }
+    public List<String> getRoles() {
+        return roles;
     }
 
     public User setEmail(String email) {
@@ -73,14 +78,12 @@ public class User {
         this.birthday = birthday;
         return this;
     }
-    public User setFriends(List<User> friends) {
-        this.friends = friends;
+    public User setPassword(String password) {
+        this.password = password;
         return this;
     }
-
-    public User addFriend(User friend){
-        User aux = new User().setEmail(friend.email).setName(friend.name);
-        this.friends.add(aux);
+    public User setRoles(List<String> roles) {
+        this.roles = roles;
         return this;
     }
 
@@ -88,24 +91,6 @@ public class User {
         this.name = user.name;
         this.country = user.country;
         this.picture = user.picture;
-        this.friends = user.friends;
-        return this;
-    }
-
-    public User getFriend(String friendId){
-        User aux = this.friends.stream().filter(user ->
-                user.getEmail().equals(friendId)
-        ).findFirst().get();
-
-        return aux;
-    }
-
-    public User removeFriend(String friendId){
-        User aux = this.friends.stream().filter(user ->
-                user.getEmail().equals(friendId)
-        ).findFirst().get();
-
-        this.friends.remove(aux);
         return this;
     }
 
@@ -113,24 +98,27 @@ public class User {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         User user = (User) o;
-        return Objects.equals(email, user.email);
+
+        if (!email.equals(user.email)) return false;
+        if (name != null ? !name.equals(user.name) : user.name != null) return false;
+        if (country != null ? !country.equals(user.country) : user.country != null) return false;
+        if (picture != null ? !picture.equals(user.picture) : user.picture != null) return false;
+        if (birthday != null ? !birthday.equals(user.birthday) : user.birthday != null) return false;
+        if (!password.equals(user.password)) return false;
+        return roles.equals(user.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email, name, country, picture, birthday, friends);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", User.class.getSimpleName() + "[", "]")
-                .add("email='" + email + "'")
-                .add("name='" + name + "'")
-                .add("country='" + country + "'")
-                .add("picture='" + picture + "'")
-                .add("birthday=" + birthday)
-                .add("friends=" + friends)
-                .toString();
+        int result = email.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (country != null ? country.hashCode() : 0);
+        result = 31 * result + (picture != null ? picture.hashCode() : 0);
+        result = 31 * result + (birthday != null ? birthday.hashCode() : 0);
+        result = 31 * result + password.hashCode();
+        result = 31 * result + roles.hashCode();
+        return result;
     }
 }
