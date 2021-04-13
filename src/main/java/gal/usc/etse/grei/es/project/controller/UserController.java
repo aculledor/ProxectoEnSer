@@ -11,6 +11,13 @@ import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +41,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("users")
+@Tag(name = "User API", description = "User related operations")
+@SecurityRequirement(name = "JWT")
 public class UserController {
     private final UserService users;
     private final LinkRelationProvider relationProvider;
@@ -122,6 +131,37 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN') or #email == principal or @userService.areFriends(#email, principal)")
+    @Operation(
+            operationId = "getOneUser",
+            summary = "Get a single user details",
+            description = "Get the details for a given user. To see the user details " +
+                    "you must be the requested user, his friend, or have admin permissions."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The user details",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = User.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Not enough privileges",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Bad token",
+                    content = @Content
+            ),
+    })
     ResponseEntity<MappingJacksonValue> getUser(@PathVariable("email") String email) {
         try{
             if (email.equals("tea")){return ResponseEntity.status(418).build();}

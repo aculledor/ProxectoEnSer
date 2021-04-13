@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,13 +13,21 @@ import java.util.List;
 @Document(collection = "users")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonFilter("userFilter")
+@Schema(
+        name = "User",
+        description = "A complete user representation"
+)
 public class User {
     @Id
     @NotBlank(message = "The email field can not be empty")
     @Email
+    @Schema(required = true, example = "test@test.com")
     private String email;
+    @Schema(example = "Pepe Perez")
     private String name;
+    @Schema(example = "Galiza")
     private String country;
+    @Schema(example = "https://placekitten.com/200/287")
     private String picture;
     private Date birthday;
     @NotBlank(message = "The password field can not be empty")
