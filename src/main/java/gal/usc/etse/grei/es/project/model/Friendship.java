@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-@Document(collection = "friends")
+@Document(collection = "friendship")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Friendship {
     @Transient
