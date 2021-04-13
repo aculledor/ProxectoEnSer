@@ -8,6 +8,8 @@ import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.Film;
 import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
+import gal.usc.etse.grei.es.project.service.AssessmentService;
+import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,17 +37,22 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class UserController {
     private final UserService users;
     private final LinkRelationProvider relationProvider;
+    private final AssessmentService assessments;
+    private final MovieService movies;
 
     @Autowired
-    public UserController(UserService users, LinkRelationProvider relationProvider) {
+    public UserController(UserService users, LinkRelationProvider relationProvider, AssessmentService assessments, MovieService movies) {
         this.users = users;
         this.relationProvider = relationProvider;
+        this.movies = movies;
+        this.assessments = assessments;
     }
 
     //get all users
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("isAuthenticated()")
     ResponseEntity<MappingJacksonValue> getAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -175,6 +182,7 @@ public class UserController {
     @PutMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<MappingJacksonValue> updateUser(@RequestBody @Valid User user) {
         try {
             if(users.get(user.getEmail()).isEmpty()){ return ResponseEntity.notFound().build(); }
@@ -206,6 +214,7 @@ public class UserController {
             path = "{email}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("#email == principal")
     ResponseEntity<MappingJacksonValue> modifyUser(
             @PathVariable("email") String email,
             @RequestBody List<Map<String, Object>> updates
@@ -242,6 +251,7 @@ public class UserController {
 
     //Delete user
     @DeleteMapping(path = "{email}")
+    @PreAuthorize("#email == principal")
     ResponseEntity<Object> deleteUser(@PathVariable("email") String email) {
         try{
             if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
@@ -262,6 +272,7 @@ public class UserController {
             path = "{email}/assessments",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("hasRole('ADMIN') or #email == principal or @userService.areFriends(#email, principal)")
     ResponseEntity<Page<Assessment>> getAssessments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -316,6 +327,116 @@ public class UserController {
         }
     }
 
+    //Modify assessment
+    @PatchMapping(
+            path = "{email}/assessments/{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("#email == principal")
+    ResponseEntity<Assessment> modifyAssessment(
+            @PathVariable("id") long id,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if (assessments.get(id).isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            if (updates.isEmpty()
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0
+                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0
+            ) {
+                return ResponseEntity.status(422).build();
+            }
+            Optional<Assessment> assessment = assessments.modifyAssessment(id, updates);
+            if (assessment.isPresent()) {
+                Link self = linkTo(methodOn(AssessmentController.class).getAssessment(id)).withSelfRel();
+                Link movieAssessments = linkTo(
+                        methodOn(MovieController.class).getAssessments(0, 20, null, assessment.get().getMovie().getId())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                Link userAssessments = linkTo(
+                        methodOn(UserController.class).getAssessments(0, 20, null, assessment.get().getUser().getEmail())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, movieAssessments.toString())
+                        .header(HttpHeaders.LINK, userAssessments.toString())
+                        .body(assessment.get());
+            }
+
+            return ResponseEntity.notFound().build();
+        } catch (JsonPatchException e) {
+            return ResponseEntity.status(400).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(422).build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    //Update assessment
+    @PutMapping(
+            path = "{email}/assessments/{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<Assessment> updateAssessment(@RequestBody @Valid Assessment assessment) {
+        try {
+            if(assessments.get(assessment.getId()).isEmpty()){return ResponseEntity.notFound().build();}
+            Optional<Assessment> assessmentAux = assessments.updateAssessment(assessment);
+            if (assessmentAux.isPresent()) {
+                Link self = linkTo(methodOn(AssessmentController.class).getAssessment(assessmentAux.get().getId())).withSelfRel();
+                Link movieAssessments = linkTo(
+                        methodOn(MovieController.class).getAssessments(0, 20, null, assessmentAux.get().getMovie().getId())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                Link userAssessments = linkTo(
+                        methodOn(UserController.class).getAssessments(0, 20, null, assessmentAux.get().getUser().getEmail())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, movieAssessments.toString())
+                        .header(HttpHeaders.LINK, userAssessments.toString())
+                        .body(assessmentAux.get());
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    //Delete one
+    @DeleteMapping(
+            path = "{email}/assessments/{id}"
+    )
+    @PreAuthorize("hasRole('ADMIN') or #email == principal")
+    ResponseEntity<Object> delete(@PathVariable("id") long id) {
+        try{
+            if(assessments.get(id).isEmpty()){return ResponseEntity.notFound().build();}
+            Optional<Assessment> assessment = assessments.get(id);
+
+            if (assessment.isPresent()) {
+                assessments.delete(id);
+                Link movieAssessments = linkTo(
+                        methodOn(MovieController.class).getAssessments(0, 20, null, assessment.get().getMovie().getId())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                Link userAssessments = linkTo(
+                        methodOn(UserController.class).getAssessments(0, 20, null, assessment.get().getUser().getEmail())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
+                return ResponseEntity
+                        .noContent()
+                        .header(HttpHeaders.LINK, movieAssessments.toString())
+                        .header(HttpHeaders.LINK, userAssessments.toString())
+                        .build();
+            }
+
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 
     //----------------------FRIENDSHIPS------------------
@@ -325,6 +446,7 @@ public class UserController {
             path = "{email}/friends",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("#email == principal")
     ResponseEntity<Page<Friendship>> getFriendships(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -382,6 +504,7 @@ public class UserController {
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("#email == principal or #friendEmail == principal")
     ResponseEntity<Friendship> getFriendship(
             @PathVariable("email") String email,
             @PathVariable("friendEmail") String friendEmail
@@ -489,6 +612,7 @@ public class UserController {
 
     //Delete friendship
     @DeleteMapping(path = "{email}/friends/{friendEmail}")
+    @PreAuthorize("#email == principal or #friendEmail == principal")
     ResponseEntity<Friendship> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
         try{
             if(users.getFriendship(email, friend).isEmpty()){ return ResponseEntity.notFound().build(); }

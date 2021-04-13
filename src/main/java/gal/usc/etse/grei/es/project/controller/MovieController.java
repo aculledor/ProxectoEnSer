@@ -2,7 +2,9 @@ package gal.usc.etse.grei.es.project.controller;
 
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.*;
+import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
+import gal.usc.etse.grei.es.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.hateoas.server.LinkRelationProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -30,17 +33,23 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class MovieController {
     private final MovieService movies;
     private final LinkRelationProvider relationProvider;
+    private final AssessmentService assessments;
+    private final UserService users;
 
     @Autowired
-    public MovieController(MovieService movies, LinkRelationProvider relationProvider) {
+    public MovieController(MovieService movies, LinkRelationProvider relationProvider, AssessmentService assessments, UserService users) {
         this.movies = movies;
         this.relationProvider = relationProvider;
+        this.assessments = assessments;
+        this.users = users;
     }
 
     //Get all movies
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
-    ) ResponseEntity<Page<Film>> getAll(
+    )
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<Page<Film>> getAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -108,6 +117,7 @@ public class MovieController {
             path = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("isAuthenticated()")
     ResponseEntity<Film> getMovie(@PathVariable("id") String id){
         try{
             Optional<Film> movie = movies.get(id);
@@ -128,11 +138,127 @@ public class MovieController {
         }
     }
 
+    //Create movie
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<Film> createMovie(@RequestBody @Valid Film film) {
+        try {
+            if(movies.get(film.getId()).isPresent()){
+                Link self = linkTo(methodOn(MovieController.class).getMovie(film.getId())).withSelfRel();
+                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                return ResponseEntity.status(409)
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(movies.get(film.getId()).get());
+            }
+
+            Optional<Film> movie = movies.createMovie(film);
+
+            if(movie.isPresent()) {
+                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
+                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(movie.get());
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Delete one movie
+    @DeleteMapping(
+            path = "{id}"
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<Object> deleteMovie(@PathVariable("id") String id) {
+        try{
+            if(movies.get(id).isEmpty()){return ResponseEntity.notFound().build();}
+            movies.delete(id);
+            Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //Update movie
+    @PutMapping(
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<Film> updateMovie(@RequestBody @Valid Film film) {
+        try {
+            if(movies.get(film.getId()).isEmpty()){return ResponseEntity.notFound().build();}
+
+            Optional<Film> movie = movies.updateMovie(film);
+
+            if(movie.isPresent()) {
+                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
+                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(movie.get());
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Modify movie
+    @PatchMapping(
+            path = "{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    ResponseEntity<Film> modifyFilm(
+            @PathVariable("id") String id,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if(movies.get(id).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0){ return ResponseEntity.status(422).build(); }
+
+            Optional<Film> movie = movies.modifyMovie(id, updates);
+
+            if(movie.isPresent()) {
+                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
+                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(movie.get());
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (JsonPatchException e){
+            return ResponseEntity.status(400).build();
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(422).build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    //--------------ASSESSMENTS-------------
+
+
     //Get movie's assessments
     @GetMapping(
             path = "{id}/assessments",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("isAuthenticated()")
     ResponseEntity<Page<Assessment>> getAssessments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
@@ -187,108 +313,47 @@ public class MovieController {
         }
     }
 
-    //Create movie
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Film> createMovie(@RequestBody @Valid Film film) {
-        try {
-            if(movies.get(film.getId()).isPresent()){
-                Link self = linkTo(methodOn(MovieController.class).getMovie(film.getId())).withSelfRel();
-                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
-                return ResponseEntity.status(409)
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(movies.get(film.getId()).get());
-            }
-
-            Optional<Film> movie = movies.createMovie(film);
-
-            if(movie.isPresent()) {
-                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
-                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
-            }
-
-            return ResponseEntity.notFound().build();
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    //Delete one movie
-    @DeleteMapping(
-            path = "{id}"
-    )
-    ResponseEntity<Object> deleteMovie(@PathVariable("id") String id) {
-        try{
-            if(movies.get(id).isEmpty()){return ResponseEntity.notFound().build();}
-            movies.delete(id);
-            Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
-            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    //Update movie
-    @PutMapping(
+    //Create Assessment
+    @PostMapping(
+            path = "{id}/assessments",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Film> updateMovie(@RequestBody @Valid Film film) {
-        try {
-            if(movies.get(film.getId()).isEmpty()){return ResponseEntity.notFound().build();}
-
-            Optional<Film> movie = movies.updateMovie(film);
-
-            if(movie.isPresent()) {
-                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
-                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
-            }
-
-            return ResponseEntity.notFound().build();
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    //Modify movie
-    @PatchMapping(
-            path = "{id}",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    ResponseEntity<Film> modifyUser(
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<Assessment> post(
             @PathVariable("id") String id,
-            @RequestBody List<Map<String, Object>> updates
+            @RequestBody @Valid Assessment assessment
     ) {
         try {
-            if(movies.get(id).isEmpty()){ return ResponseEntity.notFound().build(); }
-            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0){ return ResponseEntity.status(422).build(); }
+            boolean error = false;
+            if(assessments.get(assessment.getId()).isPresent() || !assessment.getMovie().getId().equals(id)){return ResponseEntity.status(409).body(assessments.get(assessment.getId()).get());}
+            if(users.get(assessment.getUser().getEmail()).isEmpty()){
+                error = true;
+                assessment.setUser(null);
+            }
+            if(movies.get(assessment.getMovie().getId()).isEmpty()){
+                error = true;
+                assessment.setMovie(null);
+            }
+            if(error){ResponseEntity.status(422).body(assessment);}
 
-            Optional<Film> movie = movies.modifyMovie(id, updates);
+            Optional<Assessment> result = assessments.post(assessment);
 
-            if(movie.isPresent()) {
-                Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
-                Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+            if(result.isPresent()) {
+
+                Link movie = linkTo(
+                        methodOn(MovieController.class).getMovie(assessment.getMovie().getId())
+                ).withRel(relationProvider.getItemResourceRelFor(Film.class));
+                Link movieAssessments = linkTo(
+                        methodOn(MovieController.class).getAssessments(0, 20, null, assessment.getMovie().getId())
+                ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
 
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
+                        .header(HttpHeaders.LINK, movie.toString())
+                        .header(HttpHeaders.LINK, movieAssessments.toString())
+                        .body(result.get());
             }
 
             return ResponseEntity.notFound().build();
-        }catch (JsonPatchException e){
-            return ResponseEntity.status(400).build();
-        }catch (IllegalArgumentException e){
-            return ResponseEntity.status(422).build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
