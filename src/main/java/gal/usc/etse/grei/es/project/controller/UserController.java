@@ -2,32 +2,40 @@ package gal.usc.etse.grei.es.project.controller;
 
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
+import gal.usc.etse.grei.es.project.model.Film;
 import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.LinkRelationProvider;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("users")
 public class UserController {
     private final UserService users;
+    private final LinkRelationProvider relationProvider;
 
     @Autowired
-    public UserController(UserService users) {
+    public UserController(UserService users, LinkRelationProvider relationProvider) {
         this.users = users;
+        this.relationProvider = relationProvider;
     }
 
     //get all users
@@ -50,7 +58,43 @@ public class UserController {
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            return ResponseEntity.of(users.getAll(page, size, Sort.by(criteria), email, name));
+            Optional<Page<User>> result = users.getAll(page, size, Sort.by(criteria), email, name);
+
+            if(result.isPresent()) {
+                Page<User> data = result.get();
+                Pageable metadata = data.getPageable();
+
+                Link self = linkTo(
+                        methodOn(UserController.class).getAll(page, size, sort, email, name)
+                ).withSelfRel();
+                Link first = linkTo(
+                        methodOn(UserController.class).getAll(metadata.first().getPageNumber(), size, sort, email, name)
+                ).withRel(IanaLinkRelations.FIRST);
+                Link last = linkTo(
+                        methodOn(UserController.class).getAll(data.getTotalPages() - 1, size, sort, email, name)
+                ).withRel(IanaLinkRelations.LAST);
+                Link next = linkTo(
+                        methodOn(UserController.class).getAll(metadata.next().getPageNumber(), size, sort, email, name)
+                ).withRel(IanaLinkRelations.NEXT);
+                Link previous = linkTo(
+                        methodOn(UserController.class).getAll(metadata.previousOrFirst().getPageNumber(), size, sort, email, name)
+                ).withRel(IanaLinkRelations.PREVIOUS);
+
+                Link one = linkTo(
+                        methodOn(UserController.class).getUser(null)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, first.toString())
+                        .header(HttpHeaders.LINK, next.toString())
+                        .header(HttpHeaders.LINK, previous.toString())
+                        .header(HttpHeaders.LINK, last.toString())
+                        .header(HttpHeaders.LINK, one.toString())
+                        .body(result.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -66,7 +110,20 @@ public class UserController {
         try{
             if (email.equals("tea")){return ResponseEntity.status(418).build();}
             else if(users.get(email).isEmpty()){return ResponseEntity.notFound().build();}
-            return ResponseEntity.of(users.get(email));
+
+            Optional<User> user = users.get(email);
+
+            if(user.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(email)).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(user.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch(Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -93,7 +150,39 @@ public class UserController {
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            return ResponseEntity.of(users.getAssessments(page, size, Sort.by(criteria), email));
+            Optional<Page<Assessment>> result = users.getAssessments(page, size, Sort.by(criteria), email);
+
+            if(result.isPresent()) {
+                Page<Assessment> data = result.get();
+                Pageable metadata = data.getPageable();
+
+                Link first = linkTo(
+                        methodOn(UserController.class).getAssessments(metadata.first().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.FIRST);
+                Link last = linkTo(
+                        methodOn(UserController.class).getAssessments(data.getTotalPages() - 1, size, sort, email)
+                ).withRel(IanaLinkRelations.LAST);
+                Link next = linkTo(
+                        methodOn(UserController.class).getAssessments(metadata.next().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.NEXT);
+                Link previous = linkTo(
+                        methodOn(UserController.class).getAssessments(metadata.previousOrFirst().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.PREVIOUS);
+
+                Link user = linkTo(
+                        methodOn(UserController.class).getUser(email)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, user.toString())
+                        .header(HttpHeaders.LINK, first.toString())
+                        .header(HttpHeaders.LINK, next.toString())
+                        .header(HttpHeaders.LINK, previous.toString())
+                        .header(HttpHeaders.LINK, last.toString())
+                        .body(result.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -104,7 +193,20 @@ public class UserController {
     ResponseEntity<User> post(@RequestBody @Valid User user) {
         try {
             if(users.get(user.getEmail()).isPresent()){ return ResponseEntity.status(409).body(users.get(user.getEmail()).get()); }
-            return ResponseEntity.of(users.post(user));
+
+            Optional<User> userAux = users.post(user);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(userAux.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -117,7 +219,20 @@ public class UserController {
     ResponseEntity<User> updateUser(@RequestBody @Valid User user) {
         try {
             if(users.get(user.getEmail()).isEmpty()){ return ResponseEntity.notFound().build(); }
-            return ResponseEntity.of(users.updateUser(user));
+
+            Optional<User> userAux = users.updateUser(user);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(userAux.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -135,7 +250,20 @@ public class UserController {
         try {
             if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
             if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0){ return ResponseEntity.status(422).build(); }
-            return ResponseEntity.of(users.modifyUser(email, updates));
+
+            Optional<User> userAux = users.modifyUser(email, updates);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(userAux.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (JsonPatchException e){
             return ResponseEntity.status(400).build();
         }catch (IllegalArgumentException e){
@@ -151,7 +279,8 @@ public class UserController {
         try{
             if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
             users.deleteUser(email);
-            return ResponseEntity.noContent().build();
+            Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -177,13 +306,44 @@ public class UserController {
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
-            return ResponseEntity.of(users.getFriendships(page, size, Sort.by(criteria), email));
+            Optional<Page<Friendship>> result = users.getFriendships(page, size, Sort.by(criteria), email);
+
+            if(result.isPresent()) {
+                Page<Friendship> data = result.get();
+                Pageable metadata = data.getPageable();
+
+                Link self = linkTo(
+                        methodOn(UserController.class).getFriendships(page, size, sort, email)
+                ).withSelfRel();
+                Link first = linkTo(
+                        methodOn(UserController.class).getFriendships(metadata.first().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.FIRST);
+                Link last = linkTo(
+                        methodOn(UserController.class).getFriendships(data.getTotalPages() - 1, size, sort, email)
+                ).withRel(IanaLinkRelations.LAST);
+                Link next = linkTo(
+                        methodOn(UserController.class).getFriendships(metadata.next().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.NEXT);
+                Link previous = linkTo(
+                        methodOn(UserController.class).getFriendships(metadata.previousOrFirst().getPageNumber(), size, sort, email)
+                ).withRel(IanaLinkRelations.PREVIOUS);
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, first.toString())
+                        .header(HttpHeaders.LINK, next.toString())
+                        .header(HttpHeaders.LINK, previous.toString())
+                        .header(HttpHeaders.LINK, last.toString())
+                        .body(result.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
     }
 
-    //Get friendships
+    //Get friendship
     @GetMapping(
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -193,7 +353,27 @@ public class UserController {
             @PathVariable("friendEmail") String friendEmail
     ) {
         try{
-            return ResponseEntity.of(users.getFriendship(email, friendEmail));
+            Optional<Friendship> friendship = users.getFriendship(email, friendEmail);
+
+            if(friendship.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getFriendship(email, friendEmail)).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(Friendship.class));
+                Link user = linkTo(
+                        methodOn(UserController.class).getUser(email)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+                Link friend = linkTo(
+                        methodOn(UserController.class).getUser(friendEmail)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .header(HttpHeaders.LINK, user.toString())
+                        .header(HttpHeaders.LINK, friend.toString())
+                        .body(friendship.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
@@ -210,13 +390,26 @@ public class UserController {
         try {
             if(users.get(friendEmail).isEmpty() || users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
             if(users.getFriendship(email, friendEmail).isPresent()){ return ResponseEntity.status(409).body(users.getFriendship(email, friendEmail).get()); }
-            return ResponseEntity.of(users.addFriend(email, friendEmail));
+
+            Optional<Friendship> userAux = users.addFriend(email, friendEmail);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getFriendship(email, friendEmail)).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(Friendship.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(userAux.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
     }
 
-    //Modify user
+    //Modify friendship
     @PatchMapping(
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -234,7 +427,28 @@ public class UserController {
                     || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/friend")).count() > 0
                     || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/since")).count() > 0
             ){ return ResponseEntity.status(422).build(); }
-            return ResponseEntity.of(users.modifyFriendship(email, friendEmail, updates));
+
+            Optional<Friendship> friendship = users.modifyFriendship(email, friendEmail, updates);
+
+            if(friendship.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getFriendship(email, friendEmail)).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(Friendship.class));
+                Link user = linkTo(
+                        methodOn(UserController.class).getUser(email)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+                Link friend = linkTo(
+                        methodOn(UserController.class).getUser(friendEmail)
+                ).withRel(relationProvider.getItemResourceRelFor(User.class));
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .header(HttpHeaders.LINK, user.toString())
+                        .header(HttpHeaders.LINK, friend.toString())
+                        .body(friendship.get());
+            }
+
+            return ResponseEntity.notFound().build();
         }catch (JsonPatchException e){
             return ResponseEntity.status(400).build();
         }catch (IllegalArgumentException e){
@@ -244,13 +458,14 @@ public class UserController {
         }
     }
 
-    //Delete friend
+    //Delete friendship
     @DeleteMapping(path = "{email}/friends/{friendEmail}")
     ResponseEntity<Friendship> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
         try{
             if(users.getFriendship(email, friend).isEmpty()){ return ResponseEntity.notFound().build(); }
             users.deleteFriend(email, friend);
-            return ResponseEntity.noContent().build();
+            Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(Friendship.class));
+            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {

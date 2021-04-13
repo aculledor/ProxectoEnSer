@@ -37,8 +37,8 @@ public class AssessmentService {
     }
 
     //Get one
-    public Optional<Assessment> get(String id) {
-        return assessments.findById(id);
+    public Optional<Assessment> get(long id) {
+        return assessments.findById(id+"");
     }
 
     //Create one
@@ -48,20 +48,20 @@ public class AssessmentService {
 
     //Update one
     public Optional<Assessment> updateAssessment(Assessment asses){
-        Assessment assesEdit = assessments.findById(asses.getId()).get();
+        Assessment assesEdit = assessments.findById(asses.getId()+"").get();
         assesEdit.updateAssessment(asses);
         return Optional.of(this.assessments.save(assesEdit));
     }
 
     //Modify one
-    public Optional<Assessment> modifyMovie(String id, List<Map<String, Object>> updates) throws JsonPatchException {
-        Assessment assessmentEdit = assessments.findById(id).get();
+    public Optional<Assessment> modifyAssessment(long id, List<Map<String, Object>> updates) throws JsonPatchException {
+        Assessment assessmentEdit = assessments.findById(id+"").get();
         PatchUtils aux = new PatchUtils(new ObjectMapper());
         return Optional.of(this.assessments.save(aux.patch(assessmentEdit, updates)));
     }
 
     //Delete one
-    public void delete(String id) {
-        assessments.deleteById(id);
+    public void delete(long id) {
+        assessments.deleteById(id+"");
     }
 }

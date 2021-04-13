@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
@@ -12,9 +13,10 @@ import java.util.StringJoiner;
 @Document(collection = "assessments")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Assessment {
+    @Transient
+    public static final String SEQUENCE_NAME = "assessment_sequence";
     @Id
-    @NotBlank(message = "The id can not be empty")
-    private String id;
+    private long id;
     @NotNull(message = "The rating can not be null")
     private Integer rating;
     @NotNull(message = "The rating can not be null")
@@ -24,7 +26,7 @@ public class Assessment {
     private String comment;
 
     public Assessment() { }
-    public Assessment(String id, Integer rating, User user, Film film, String comment) {
+    public Assessment(Integer rating, User user, Film film, String comment) {
         this.id = id;
         this.rating = rating;
         this.user = user;
@@ -32,7 +34,7 @@ public class Assessment {
         this.comment = comment;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
     public Integer getRating() {
@@ -48,7 +50,7 @@ public class Assessment {
         return comment;
     }
 
-    public Assessment setId(String id) {
+    public Assessment setId(long id) {
         this.id = id;
         return this;
     }
