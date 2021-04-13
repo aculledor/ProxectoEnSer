@@ -406,7 +406,7 @@ public class UserController {
     }
 
 
-    //Delete one
+    //Delete assessment
     @DeleteMapping(
             path = "{email}/assessments/{id}"
     )
@@ -567,7 +567,7 @@ public class UserController {
         }
     }
 
-    //Modify friendship
+    //Accept friendship
     @PatchMapping(
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE
