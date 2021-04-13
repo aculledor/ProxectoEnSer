@@ -11,6 +11,7 @@ import gal.usc.etse.grei.es.project.repository.FriendshipRepository;
 import gal.usc.etse.grei.es.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,12 +21,14 @@ public class UserService {
     private final UserRepository users;
     private final AssessmentRepository assessments;
     private final FriendshipRepository friendships;
+    private final PasswordEncoder encoder;
 
     @Autowired
-    public UserService(UserRepository users, AssessmentRepository assessments, FriendshipRepository friendships) {
+    public UserService(UserRepository users, AssessmentRepository assessments, FriendshipRepository friendships, PasswordEncoder encoder) {
         this.users = users;
         this.assessments = assessments;
         this.friendships = friendships;
+        this.encoder = encoder;
     }
 
     //Get all
@@ -66,6 +69,7 @@ public class UserService {
 
     //Create one
     public Optional<User> post(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
         return Optional.of(users.save(user));
     }
 
@@ -103,6 +107,14 @@ public class UserService {
         Optional<Friendship> aux = friendships.findByUserAndFriend(email, friend);
         if(aux.isEmpty()){aux = friendships.findByUserAndFriend(friend, email);}
         return aux;
+    }
+
+    //Are friends
+    public Boolean areFriends(String email, String friend) {
+        Optional<Friendship> aux = friendships.findByUserAndFriend(email, friend);
+        if(aux.isEmpty()){aux = friendships.findByUserAndFriend(friend, email);}
+        if(aux.isEmpty()){return false;}
+        return true;
     }
 
     //Add friend
