@@ -1,5 +1,6 @@
 package gal.usc.etse.grei.es.project.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Document(collection = "users")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonFilter("userFilter")
 public class User {
     @Id
     @NotBlank(message = "The email field can not be empty")
