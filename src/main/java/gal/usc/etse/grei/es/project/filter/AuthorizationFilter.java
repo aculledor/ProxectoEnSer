@@ -25,7 +25,6 @@ public class AuthorizationFilter  extends BasicAuthenticationFilter {
     public AuthorizationFilter(AuthenticationManager manager, Key key){
         super(manager);
         this.key = key;
-        System.out.println("Authentication "+ Base64.getEncoder().encodeToString(key.getEncoded()));
     }
 
     // Método a executar cando se comproba o control de acceso

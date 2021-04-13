@@ -33,7 +33,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     public AuthenticationFilter(AuthenticationManager manager, Key key){
         this.manager = manager;
         this.key = key;
-        System.out.println("Authentication "+ Base64.getEncoder().encodeToString(key.getEncoded()));
     }
 
     // Método que tenta autenticar ao usuario a partir da chamada HTTP
