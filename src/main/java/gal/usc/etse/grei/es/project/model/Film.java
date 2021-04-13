@@ -1,5 +1,6 @@
 package gal.usc.etse.grei.es.project.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,6 +12,7 @@ import java.util.StringJoiner;
 
 @Document(collection = "movies")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonFilter("movieFilter")
 public class Film {
     @Id
     @NotBlank(message = "The id can not be empty")

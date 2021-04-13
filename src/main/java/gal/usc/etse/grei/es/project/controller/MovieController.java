@@ -1,5 +1,8 @@
 package gal.usc.etse.grei.es.project.controller;
 
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
@@ -15,6 +18,7 @@ import org.springframework.hateoas.server.LinkRelationProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +53,7 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<Page<Film>> getAll(
+    ResponseEntity<MappingJacksonValue> getAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -71,6 +75,8 @@ public class MovieController {
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
             Optional<Page<Film>> result = movies.getAll(page, size, Sort.by(criteria), title, keywords, genres, crew, cast, producers, releaseDate);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id","title","overview","genres","releaseDate","resources");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
 
             if(result.isPresent()) {
                 Page<Film> data = result.get();
@@ -95,6 +101,8 @@ public class MovieController {
                 Link one = linkTo(
                         methodOn(MovieController.class).getMovie(null)
                 ).withRel(relationProvider.getItemResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(result.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
@@ -103,7 +111,7 @@ public class MovieController {
                         .header(HttpHeaders.LINK, previous.toString())
                         .header(HttpHeaders.LINK, last.toString())
                         .header(HttpHeaders.LINK, one.toString())
-                        .body(result.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
@@ -118,18 +126,22 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<Film> getMovie(@PathVariable("id") String id){
+    ResponseEntity<MappingJacksonValue> getMovie(@PathVariable("id") String id){
         try{
             Optional<Film> movie = movies.get(id);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAll();
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
 
             if(movie.isPresent()) {
                 Link self = linkTo(methodOn(MovieController.class).getMovie(id)).withSelfRel();
                 Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(movie.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
@@ -141,15 +153,19 @@ public class MovieController {
     //Create movie
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Film> createMovie(@RequestBody @Valid Film film) {
+    ResponseEntity<MappingJacksonValue> createMovie(@RequestBody @Valid Film film) {
         try {
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAll();
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
             if(movies.get(film.getId()).isPresent()){
                 Link self = linkTo(methodOn(MovieController.class).getMovie(film.getId())).withSelfRel();
                 Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(movies.get(film.getId()).get());
+                mappingJacksonValue.setFilters(filterProvider);
                 return ResponseEntity.status(409)
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(movies.get(film.getId()).get());
+                        .body(mappingJacksonValue);
             }
 
             Optional<Film> movie = movies.createMovie(film);
@@ -157,11 +173,13 @@ public class MovieController {
             if(movie.isPresent()) {
                 Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
                 Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(movie.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
@@ -191,20 +209,24 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Film> updateMovie(@RequestBody @Valid Film film) {
+    ResponseEntity<MappingJacksonValue> updateMovie(@RequestBody @Valid Film film) {
         try {
             if(movies.get(film.getId()).isEmpty()){return ResponseEntity.notFound().build();}
 
             Optional<Film> movie = movies.updateMovie(film);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAll();
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
 
             if(movie.isPresent()) {
                 Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
                 Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(movie.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
@@ -219,7 +241,7 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Film> modifyFilm(
+    ResponseEntity<MappingJacksonValue> modifyFilm(
             @PathVariable("id") String id,
             @RequestBody List<Map<String, Object>> updates
     ) {
@@ -228,15 +250,19 @@ public class MovieController {
             if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0){ return ResponseEntity.status(422).build(); }
 
             Optional<Film> movie = movies.modifyMovie(id, updates);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAll();
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
 
             if(movie.isPresent()) {
                 Link self = linkTo(methodOn(MovieController.class).getMovie(movie.get().getId())).withSelfRel();
                 Link all = linkTo(MovieController.class).withRel(relationProvider.getCollectionResourceRelFor(Film.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(movie.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(movie.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
