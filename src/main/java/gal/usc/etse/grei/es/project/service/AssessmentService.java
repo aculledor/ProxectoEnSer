@@ -43,7 +43,7 @@ public class AssessmentService {
 
     //Create one
     public Optional<Assessment> post(Assessment assessment) {
-        return Optional.of(assessments.save(assessment));
+        return Optional.of(assessments.insert(assessment));
     }
 
     //Update one
