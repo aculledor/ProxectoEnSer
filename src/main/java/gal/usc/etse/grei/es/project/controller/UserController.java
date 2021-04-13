@@ -1,5 +1,8 @@
 package gal.usc.etse.grei.es.project.controller;
 
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.Film;
@@ -16,6 +19,7 @@ import org.springframework.hateoas.server.LinkRelationProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +46,7 @@ public class UserController {
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Page<User>> getAll(
+    ResponseEntity<MappingJacksonValue> getAll(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -59,6 +63,8 @@ public class UserController {
             }).filter(Objects::nonNull).collect(Collectors.toList());
 
             Optional<Page<User>> result = users.getAll(page, size, Sort.by(criteria), email, name);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("name", "country", "birthday", "picture");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
 
             if(result.isPresent()) {
                 Page<User> data = result.get();
@@ -84,6 +90,9 @@ public class UserController {
                         methodOn(UserController.class).getUser(null)
                 ).withRel(relationProvider.getItemResourceRelFor(User.class));
 
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(result.get());
+                mappingJacksonValue.setFilters(filterProvider);
+
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, first.toString())
@@ -91,7 +100,7 @@ public class UserController {
                         .header(HttpHeaders.LINK, previous.toString())
                         .header(HttpHeaders.LINK, last.toString())
                         .header(HttpHeaders.LINK, one.toString())
-                        .body(result.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();
@@ -106,28 +115,147 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN') or #email == principal or @userService.areFriends(#email, principal)")
-    ResponseEntity<User> getUser(@PathVariable("email") String email) {
+    ResponseEntity<MappingJacksonValue> getUser(@PathVariable("email") String email) {
         try{
             if (email.equals("tea")){return ResponseEntity.status(418).build();}
             else if(users.get(email).isEmpty()){return ResponseEntity.notFound().build();}
+            //Crear o filtro iltros
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAllExcept("password");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
 
             Optional<User> user = users.get(email);
-
-            if(user.isPresent()) {
+            if (user.isPresent()) {
                 Link self = linkTo(methodOn(UserController.class).getUser(email)).withSelfRel();
                 Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+
+                //Filtrar a password
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(user.get());
+                mappingJacksonValue.setFilters(filterProvider);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
                         .header(HttpHeaders.LINK, all.toString())
-                        .body(user.get());
+                        .body(mappingJacksonValue);
             }
-
             return ResponseEntity.notFound().build();
         }catch(Exception e){
             return ResponseEntity.badRequest().build();
         }
     }
+
+    //Create user
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<MappingJacksonValue> post(@RequestBody @Valid User user) {
+        try {
+            if(users.get(user.getEmail()).isPresent()){ return ResponseEntity.status(409).build(); }
+
+            Optional<User> userAux = users.post(user);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAllExcept("password");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(userAux.get());
+                mappingJacksonValue.setFilters(filterProvider);
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(mappingJacksonValue);
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Update user
+    @PutMapping(
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<MappingJacksonValue> updateUser(@RequestBody @Valid User user) {
+        try {
+            if(users.get(user.getEmail()).isEmpty()){ return ResponseEntity.notFound().build(); }
+
+            Optional<User> userAux = users.updateUser(user);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAllExcept("password");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(userAux.get());
+                mappingJacksonValue.setFilters(filterProvider);
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(mappingJacksonValue);
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Modify user
+    @PatchMapping(
+            path = "{email}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<MappingJacksonValue> modifyUser(
+            @PathVariable("email") String email,
+            @RequestBody List<Map<String, Object>> updates
+    ) {
+        try {
+            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0){ return ResponseEntity.status(422).build(); }
+
+            Optional<User> userAux = users.modifyUser(email, updates);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAllExcept("password");
+            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
+
+            if(userAux.isPresent()) {
+                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
+                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(userAux.get());
+                mappingJacksonValue.setFilters(filterProvider);
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.LINK, self.toString())
+                        .header(HttpHeaders.LINK, all.toString())
+                        .body(mappingJacksonValue);
+            }
+
+            return ResponseEntity.notFound().build();
+        }catch (JsonPatchException e){
+            return ResponseEntity.status(400).build();
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(422).build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    //Delete user
+    @DeleteMapping(path = "{email}")
+    ResponseEntity<Object> deleteUser(@PathVariable("email") String email) {
+        try{
+            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
+            users.deleteUser(email);
+            Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
+            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+
+    //-----------------------ASSESSMENTS-----------------------
 
     //Get user's assessments
     @GetMapping(
@@ -188,103 +316,9 @@ public class UserController {
         }
     }
 
-    //Create user
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<User> post(@RequestBody @Valid User user) {
-        try {
-            if(users.get(user.getEmail()).isPresent()){ return ResponseEntity.status(409).body(users.get(user.getEmail()).get()); }
 
-            Optional<User> userAux = users.post(user);
 
-            if(userAux.isPresent()) {
-                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
-                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(userAux.get());
-            }
-
-            return ResponseEntity.notFound().build();
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    //Update user
-    @PutMapping(
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    ResponseEntity<User> updateUser(@RequestBody @Valid User user) {
-        try {
-            if(users.get(user.getEmail()).isEmpty()){ return ResponseEntity.notFound().build(); }
-
-            Optional<User> userAux = users.updateUser(user);
-
-            if(userAux.isPresent()) {
-                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
-                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(userAux.get());
-            }
-
-            return ResponseEntity.notFound().build();
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    //Modify user
-    @PatchMapping(
-            path = "{email}",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    ResponseEntity<User> modifyUser(
-            @PathVariable("email") String email,
-            @RequestBody List<Map<String, Object>> updates
-    ) {
-        try {
-            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
-            if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0){ return ResponseEntity.status(422).build(); }
-
-            Optional<User> userAux = users.modifyUser(email, updates);
-
-            if(userAux.isPresent()) {
-                Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
-                Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.LINK, self.toString())
-                        .header(HttpHeaders.LINK, all.toString())
-                        .body(userAux.get());
-            }
-
-            return ResponseEntity.notFound().build();
-        }catch (JsonPatchException e){
-            return ResponseEntity.status(400).build();
-        }catch (IllegalArgumentException e){
-            return ResponseEntity.status(422).build();
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    //Delete user
-    @DeleteMapping(path = "{email}")
-    ResponseEntity<Object> deleteUser(@PathVariable("email") String email) {
-        try{
-            if(users.get(email).isEmpty()){ return ResponseEntity.notFound().build(); }
-            users.deleteUser(email);
-            Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
-            return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
+    //----------------------FRIENDSHIPS------------------
 
     //Get friendships
     @GetMapping(
@@ -383,6 +417,7 @@ public class UserController {
     @PostMapping(
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("#email == principal")
     ResponseEntity<Friendship> addFriend(
             @PathVariable("email") String email,
             @PathVariable("friendEmail") String friendEmail
@@ -414,21 +449,15 @@ public class UserController {
             path = "{email}/friends/{friendEmail}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("#friendEmail == principal")
     ResponseEntity<Friendship> modifyFriendship(
             @PathVariable("email") String email,
-            @PathVariable("friendEmail") String friendEmail,
-            @RequestBody List<Map<String, Object>> updates
+            @PathVariable("friendEmail") String friendEmail
     ) {
         try {
             if(users.getFriendship(email, friendEmail).isEmpty()){ return ResponseEntity.notFound().build(); }
-            if(updates.isEmpty()
-                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/id")).count() > 0
-                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/user")).count() > 0
-                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/friend")).count() > 0
-                    || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/since")).count() > 0
-            ){ return ResponseEntity.status(422).build(); }
 
-            Optional<Friendship> friendship = users.modifyFriendship(email, friendEmail, updates);
+            Optional<Friendship> friendship = users.modifyFriendship(email, friendEmail);
 
             if(friendship.isPresent()) {
                 Link self = linkTo(methodOn(UserController.class).getFriendship(email, friendEmail)).withSelfRel();
