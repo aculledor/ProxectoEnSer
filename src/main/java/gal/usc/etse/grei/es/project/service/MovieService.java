@@ -56,7 +56,7 @@ public class MovieService {
 
     //Create one
     public Optional<Film> createMovie(Film film) {
-        return Optional.of(movies.save(film));
+        return Optional.of(movies.insert(film));
     }
 
     //Update one

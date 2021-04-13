@@ -70,7 +70,7 @@ public class UserService {
     //Create one
     public Optional<User> post(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
-        return Optional.of(users.save(user));
+        return Optional.of(users.insert(user));
     }
 
     //Update one
@@ -120,7 +120,7 @@ public class UserService {
     //Add friend
     public Optional<Friendship> addFriend(String email, String friend){
         Friendship friendship = new Friendship().setUser(email).setFriend(friend).setConfirmed(false);
-        return Optional.of(this.friendships.save(friendship.setSince(new Date())));
+        return Optional.of(this.friendships.insert(friendship));
     }
 
     //Delete friendship
@@ -129,9 +129,8 @@ public class UserService {
     }
 
     //Modify friendship
-    public Optional<Friendship> modifyFriendship(String email, String friend, List<Map<String, Object>> updates) throws JsonPatchException {
-        Friendship userFriendship = this.friendships.findByUserAndFriend(email, friend).get();
-        PatchUtils aux = new PatchUtils(new ObjectMapper());
-        return Optional.of(this.friendships.save(aux.patch(userFriendship,updates)));
+    public Optional<Friendship> modifyFriendship(String email, String friend) throws JsonPatchException {
+        Friendship userFriendship = this.friendships.findByUserAndFriend(email, friend).get().setConfirmed(true).setSince(new Date());
+        return Optional.of(this.friendships.save(userFriendship));
     }
 }
