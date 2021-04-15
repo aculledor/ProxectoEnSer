@@ -2,6 +2,7 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -31,7 +32,9 @@ public class User {
     private String picture;
     private Date birthday;
     @NotBlank(message = "The password field can not be empty")
+    @Schema(example = "1234")
     private String password;
+    @Schema(name = "Roles", allowableValues = {"ADMIN","USER"})
     private List<String> roles;
 
     public User() {}

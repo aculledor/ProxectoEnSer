@@ -8,6 +8,14 @@ import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +41,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
+@Tag(name = "Movie API", description = "Movie related operations")
 @RequestMapping("movies")
+@SecurityRequirement(name = "JWT")
 public class MovieController {
     private final MovieService movies;
     private final LinkRelationProvider relationProvider;
@@ -53,7 +63,37 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<MappingJacksonValue> getAll(
+    @Operation(
+            operationId = "getAllMovies",
+            summary = "Get all Movies",
+            description = "Get all movies that conform to optional filters"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The movies list",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad Request",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Bad token",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Not Found",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+    })
+    ResponseEntity<MappingJacksonValue> getAllMovies(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -83,19 +123,19 @@ public class MovieController {
                 Pageable metadata = data.getPageable();
 
                 Link self = linkTo(
-                        methodOn(MovieController.class).getAll(page, size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
+                        methodOn(MovieController.class).getAllMovies(page, size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
                 ).withSelfRel();
                 Link first = linkTo(
-                        methodOn(MovieController.class).getAll(metadata.first().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
+                        methodOn(MovieController.class).getAllMovies(metadata.first().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
                 ).withRel(IanaLinkRelations.FIRST);
                 Link last = linkTo(
-                        methodOn(MovieController.class).getAll(data.getTotalPages() - 1, size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
+                        methodOn(MovieController.class).getAllMovies(data.getTotalPages() - 1, size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
                 ).withRel(IanaLinkRelations.LAST);
                 Link next = linkTo(
-                        methodOn(MovieController.class).getAll(metadata.next().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
+                        methodOn(MovieController.class).getAllMovies(metadata.next().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
                 ).withRel(IanaLinkRelations.NEXT);
                 Link previous = linkTo(
-                        methodOn(MovieController.class).getAll(metadata.previousOrFirst().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
+                        methodOn(MovieController.class).getAllMovies(metadata.previousOrFirst().getPageNumber(), size, sort, title, keywords, genres, crew, cast, producers, releaseDate)
                 ).withRel(IanaLinkRelations.PREVIOUS);
 
                 Link one = linkTo(
@@ -126,6 +166,36 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+            operationId = "getMovie",
+            summary = "Get a single movie details",
+            description = "Get the details for a given movie. Everyone can access the movie repository"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The movie details",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Movie not found",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Bad token",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+    })
     ResponseEntity<MappingJacksonValue> getMovie(@PathVariable("id") String id){
         try{
             Optional<Film> movie = movies.get(id);
@@ -153,7 +223,40 @@ public class MovieController {
     //Create movie
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<MappingJacksonValue> createMovie(@RequestBody @Valid Film film) {
+    @Operation(
+            operationId = "createMovie",
+            summary = "Create a new Movie",
+            description = "Creates a new movie based on the object received"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The created movie",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request, the item has to be a valid Movie object",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflict with existing Movie",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            )
+    })
+    ResponseEntity<MappingJacksonValue> createMovie(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Movie to be created",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            )
+            @RequestBody @Valid Film film) {
         try {
             SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAll();
             FilterProvider filterProvider = new SimpleFilterProvider().addFilter("movieFilter", filter);
@@ -193,6 +296,23 @@ public class MovieController {
             path = "{id}"
     )
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            operationId = "deleteUser",
+            summary = "Deletes an user",
+            description = "Deletes the user data from the database"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User deleted",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            )
+    })
     ResponseEntity<Object> deleteMovie(@PathVariable("id") String id) {
         try{
             if(movies.get(id).isEmpty()){return ResponseEntity.notFound().build();}
@@ -209,7 +329,45 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<MappingJacksonValue> updateMovie(@RequestBody @Valid Film film) {
+    @Operation(
+            operationId = "updateMovie",
+            summary = "Replaces a movie",
+            description = "Replace the movie data with the new data provided"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The replaced movie",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Not Found",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            )
+    })
+    ResponseEntity<MappingJacksonValue> updateMovie(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Film to be updated",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            )
+            @RequestBody @Valid Film film) {
         try {
             if(movies.get(film.getId()).isEmpty()){return ResponseEntity.notFound().build();}
 
@@ -241,8 +399,47 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            operationId = "modifyFilm",
+            summary = "Modifies a movie",
+            description = "Modify the movie data following JSONPatch standards"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The replaced user",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Film.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Unprocessable Entity",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+    })
     ResponseEntity<MappingJacksonValue> modifyFilm(
             @PathVariable("id") String id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Modifications to be applied",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "[{\"op\": \"replace\", \"path\": \"/foo\", \"value\": \"boo\"}]"
+                            )
+                    )
+            )
             @RequestBody List<Map<String, Object>> updates
     ) {
         try {
@@ -285,7 +482,32 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<Page<Assessment>> getAssessments(
+    @Operation(
+            operationId = "getAllAssessments",
+            summary = "Get all Assessments",
+            description = "Get all assessments that conform to optional filters"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The assessments list",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Bad token",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Not Found",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            )
+    })
+    ResponseEntity<Page<Assessment>> getAllAssessments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
@@ -308,16 +530,16 @@ public class MovieController {
                 Pageable metadata = data.getPageable();
 
                 Link first = linkTo(
-                        methodOn(MovieController.class).getAssessments(metadata.first().getPageNumber(), size, sort, id)
+                        methodOn(MovieController.class).getAllAssessments(metadata.first().getPageNumber(), size, sort, id)
                 ).withRel(IanaLinkRelations.FIRST);
                 Link last = linkTo(
-                        methodOn(MovieController.class).getAssessments(data.getTotalPages() - 1, size, sort, id)
+                        methodOn(MovieController.class).getAllAssessments(data.getTotalPages() - 1, size, sort, id)
                 ).withRel(IanaLinkRelations.LAST);
                 Link next = linkTo(
-                        methodOn(MovieController.class).getAssessments(metadata.next().getPageNumber(), size, sort, id)
+                        methodOn(MovieController.class).getAllAssessments(metadata.next().getPageNumber(), size, sort, id)
                 ).withRel(IanaLinkRelations.NEXT);
                 Link previous = linkTo(
-                        methodOn(MovieController.class).getAssessments(metadata.previousOrFirst().getPageNumber(), size, sort, id)
+                        methodOn(MovieController.class).getAllAssessments(metadata.previousOrFirst().getPageNumber(), size, sort, id)
                 ).withRel(IanaLinkRelations.PREVIOUS);
 
                 Link movie = linkTo(
@@ -345,8 +567,41 @@ public class MovieController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<Assessment> post(
+    @Operation(
+            operationId = "postAssessment",
+            summary = "Create a new Assessment",
+            description = "Creates a new assessment based on the object received"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The created assessment",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = User.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request, the item has to be a valid Assessment object",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflict with existing Assessment",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+            )
+    })
+    ResponseEntity<Assessment> postAssessment(
             @PathVariable("id") String id,
+
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Assessment to be created",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Assessment.class)
+                    )
+            )
             @RequestBody @Valid Assessment assessment
     ) {
         try {
@@ -370,7 +625,7 @@ public class MovieController {
                         methodOn(MovieController.class).getMovie(assessment.getMovie().getId())
                 ).withRel(relationProvider.getItemResourceRelFor(Film.class));
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAssessments(0, 20, null, assessment.getMovie().getId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.getMovie().getId())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
 
                 return ResponseEntity.ok()

@@ -8,6 +8,10 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Date",
+        description = "An auxiliary Date class"
+)
 public class Date {
     @Schema(minimum = "1", maximum = "31", example = "12")
     private Integer day;

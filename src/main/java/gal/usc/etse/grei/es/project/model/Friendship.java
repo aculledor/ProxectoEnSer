@@ -1,6 +1,7 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,15 +14,22 @@ import java.util.StringJoiner;
 
 @Document(collection = "friendship")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Friendship",
+        description = "A complete friendship between users representation with an auto increment id"
+)
 public class Friendship {
     @Transient
     public static final String SEQUENCE_NAME = "friendship_sequence";
     @Id
     public long id;
     @NotBlank(message = "The friend field can not be empty")
+    @Schema(required = true)
     private String user;
     @NotBlank(message = "The friend field can not be empty")
+    @Schema(required = true, example = "test@test.com")
     private String friend;
+    @Schema(example = "false")
     private Boolean confirmed;
     private Date since;
 

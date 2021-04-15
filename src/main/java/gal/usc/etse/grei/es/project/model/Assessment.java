@@ -1,6 +1,7 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,17 +13,23 @@ import java.util.StringJoiner;
 
 @Document(collection = "assessments")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Assessment",
+        description = "A complete assessment representation with an auto increment id"
+)
 public class Assessment {
     @Transient
     public static final String SEQUENCE_NAME = "assessment_sequence";
     @Id
     private long id;
     @NotNull(message = "The rating can not be null")
+    @Schema(required = true, minimum = "1", maximum = "5", example = "3")
     private Integer rating;
     @NotNull(message = "The rating can not be null")
     private User user;
     @NotNull(message = "The rating can not be null")
     private Film film;
+    @Schema(example = "I like it")
     private String comment;
 
     public Assessment() { }

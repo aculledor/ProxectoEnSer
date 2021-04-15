@@ -2,8 +2,13 @@ package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.context.annotation.Description;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.web.bind.annotation.ModelAttribute;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
@@ -13,13 +18,21 @@ import java.util.StringJoiner;
 @Document(collection = "movies")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonFilter("movieFilter")
+@Schema(
+        name = "Film",
+        description = "A complete movie representation"
+)
 public class Film {
     @Id
     @NotBlank(message = "The id can not be empty")
+    @Schema(required = true, example = "9999")
     private String id;
     @NotBlank(message = "The title can not be empty")
+    @Schema(required = true, example = "Pirates of the Caribbean")
     private String title;
+    @Schema(example = "Movie about pirates")
     private String overview;
+    @Schema(example = "Action")
     private String tagline;
     private Collection collection;
     private List<String> genres;
@@ -29,9 +42,12 @@ public class Film {
     private List<Crew> crew;
     private List<Cast> cast;
     private List<Resource> resources;
+    @Schema(minimum = "1", example = "40000")
     private Long budget;
     private Status status;
+    @Schema(minimum = "1", maximum = "9999", example = "120")
     private Integer runtime;
+    @Schema(minimum = "1",  example = "999999")
     private Long revenue;
 
     public Film() { }

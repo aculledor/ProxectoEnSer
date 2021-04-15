@@ -1,12 +1,18 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Crew",
+        description = "A complete crew representation extending Person"
+)
 public class Crew extends Person{
+    @Schema(example = "lighting manager")
     private String job;
 
     public Crew() {

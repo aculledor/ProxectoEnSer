@@ -1,20 +1,32 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 @Document(collection = "people")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Person",
+        description = "A complete person representation"
+)
 public class Person {
     @Id
+    @NotBlank(message = "The id field can not be empty")
+    @Schema(required = true, example = "999")
     private String id;
+    @Schema(example = "Pepe Perez")
     private String name;
+    @Schema(example = "Spain")
     private String country;
+    @Schema(example = "https://placekitten.com/200/287")
     private String picture;
+    @Schema(example = "He lives in Bilbao")
     private String biography;
     private Date birthday;
     private Date deathday;

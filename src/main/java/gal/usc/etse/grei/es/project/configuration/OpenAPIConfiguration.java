@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 contact = @Contact(
                         name = "Abraham Trashorras Rivas",
                         url = "https://www.linkedin.com/in/abraham-trashorras-a853a1175/",
-                        email = "victorjose.gallego@usc.es"
+                        email = "abraham.trashorras@rai.usc.es"
                 ),
                 license = @License(
                         name = "MIT Licence",

@@ -1,14 +1,24 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.annotation.Id;
 
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Collection",
+        description = "An auxiliary storage class for the Resources class"
+)
 public class Collection {
+    @Id
+    @NotBlank(message = "The name field can not be empty")
+    @Schema(required = true, example = "resources")
     private String name;
     private List<Resource> resources = new ArrayList<>();
 

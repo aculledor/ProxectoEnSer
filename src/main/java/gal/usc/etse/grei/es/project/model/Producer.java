@@ -1,14 +1,27 @@
 package gal.usc.etse.grei.es.project.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.annotation.Id;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+        name = "Producer",
+        description = "A complete producer representation"
+)
 public class Producer {
+    @Id
+    @NotBlank(message = "The name field can not be empty")
+    @Schema(required = true, example = "Fox")
     private String name;
+    @Schema(example = "https://placekitten.com/200/287")
     private String logo;
+    @Schema(example = "Spain")
     private String country;
 
     public Producer() {

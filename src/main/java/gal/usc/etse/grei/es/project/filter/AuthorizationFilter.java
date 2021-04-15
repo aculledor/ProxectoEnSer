@@ -3,6 +3,7 @@ package gal.usc.etse.grei.es.project.filter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,6 +53,9 @@ public class AuthorizationFilter  extends BasicAuthenticationFilter {
         } catch(ExpiredJwtException e){
             // Se se sobrepasou a duración do token devolvemos un erro 419.
             response.setStatus(419);
+        }catch(SignatureException e){
+            // Se o token non é valido devolvemos un erro 403.
+            response.setStatus(403);
         }
     }
 
