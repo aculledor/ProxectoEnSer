@@ -77,7 +77,39 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Page.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users")
+                            ),
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/users")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/users")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/users")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/users")
+                            ),
+                            @Header(
+                                    name = "One user",
+                                    description = "HATEOAS Link to one user",
+                                    schema = @Schema(title = "One movie", type = "/users/{email}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -172,7 +204,19 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = User.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all users",
+                                    schema = @Schema(title = "All", type = "/users")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -232,7 +276,19 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = User.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all users",
+                                    schema = @Schema(title = "All", type = "/users")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -297,7 +353,19 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = User.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all users",
+                                    schema = @Schema(title = "All", type = "/users")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -368,7 +436,19 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = User.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all users",
+                                    schema = @Schema(title = "All", type = "/users")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -441,7 +521,14 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "User deleted",
-                    content = @Content(schema = @Schema(implementation = Void.class))
+                    content = @Content(schema = @Schema(implementation = Void.class)),
+                    headers = {
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all users",
+                                    schema = @Schema(title = "All", type = "/users")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "403",
@@ -482,7 +569,34 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Page.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/assessments")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/users/{email}/assessments")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/users/{email}/assessments")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/users/{email}/assessments")
+                            ),
+                            @Header(
+                                    name = "User",
+                                    description = "HATEOAS Link to the user",
+                                    schema = @Schema(title = "One user", type = "/users/{email}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -562,7 +676,24 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Assessment.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "User Assessments",
+                                    description = "HATEOAS Link to the user's assessments",
+                                    schema = @Schema(title = "User's Assessments", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "Movie Assessments",
+                                    description = "HATEOAS Link to the movie's assessments",
+                                    schema = @Schema(title = "Movie's Assessments", type = "/movies/{id}/assessments/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -648,7 +779,24 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Assessment.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "User Assessments",
+                                    description = "HATEOAS Link to the user's assessments",
+                                    schema = @Schema(title = "User's Assessments", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "Movie Assessments",
+                                    description = "HATEOAS Link to the movie's assessments",
+                                    schema = @Schema(title = "Movie's Assessments", type = "/movies/{id}/assessments/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -715,7 +863,24 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Assessment deleted",
-                    content = @Content(schema = @Schema(implementation = Void.class))
+                    content = @Content(schema = @Schema(implementation = Void.class)),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "User Assessments",
+                                    description = "HATEOAS Link to the user's assessments",
+                                    schema = @Schema(title = "User's Assessments", type = "/users/{email}/assessments/{id}")
+                            ),
+                            @Header(
+                                    name = "Movie Assessments",
+                                    description = "HATEOAS Link to the movie's assessments",
+                                    schema = @Schema(title = "Movie's Assessments", type = "/movies/{id}/assessments/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "403",
@@ -771,7 +936,34 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Page.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/users/{email}/friends")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -849,7 +1041,29 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Friendship.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/friends/{friendEmail}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the user's friends",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "User",
+                                    description = "HATEOAS Link to the user",
+                                    schema = @Schema(title = "Last Page", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "Friend",
+                                    description = "HATEOAS Link to user's friend",
+                                    schema = @Schema(title = "Next Page", type = "/users/{email}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -915,7 +1129,19 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Friendship.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/friends/{friendEmail}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the user's friends",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/friends")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "403",
@@ -967,7 +1193,29 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Friendship.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/users/{email}/friends/{friendEmail}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the user's friends",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/friends")
+                            ),
+                            @Header(
+                                    name = "User",
+                                    description = "HATEOAS Link to the user",
+                                    schema = @Schema(title = "Last Page", type = "/users/{email}")
+                            ),
+                            @Header(
+                                    name = "Friend",
+                                    description = "HATEOAS Link to user's friend",
+                                    schema = @Schema(title = "Next Page", type = "/users/{email}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -1029,7 +1277,14 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Friendship deleted",
-                    content = @Content(schema = @Schema(implementation = Void.class))
+                    content = @Content(schema = @Schema(implementation = Void.class)),
+                    headers = {
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the user's friends",
+                                    schema = @Schema(title = "First Page", type = "/users/{email}/friends")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "403",

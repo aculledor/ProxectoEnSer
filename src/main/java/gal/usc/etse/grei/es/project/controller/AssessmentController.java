@@ -11,6 +11,7 @@ import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,7 +66,14 @@ public class AssessmentController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Assessment.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/assessments/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",

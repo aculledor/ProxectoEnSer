@@ -9,6 +9,7 @@ import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -75,7 +76,39 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Page.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "One movies",
+                                    description = "HATEOAS Link to one movies",
+                                    schema = @Schema(title = "One movie", type = "/movies/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -178,7 +211,39 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Film.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/movies")
+                            ),
+                            @Header(
+                                    name = "One movies",
+                                    description = "HATEOAS Link to one movies",
+                                    schema = @Schema(title = "One movie", type = "/movies/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -235,7 +300,19 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Film.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/movies/{id}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the movies",
+                                    schema = @Schema(title = "All", type = "/movies")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -305,7 +382,14 @@ public class MovieController {
             @ApiResponse(
                     responseCode = "200",
                     description = "User deleted",
-                    content = @Content(schema = @Schema(implementation = Void.class))
+                    content = @Content(schema = @Schema(implementation = Void.class)),
+                    headers = {
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the movies",
+                                    schema = @Schema(title = "All", type = "/movies")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "403",
@@ -341,7 +425,19 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Film.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/movies/{id}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the movies",
+                                    schema = @Schema(title = "All", type = "/movies")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -411,7 +507,19 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Film.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Self",
+                                    description = "HATEOAS Link to itself",
+                                    schema = @Schema(title = "Self", type = "/movies/{id}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all the movies",
+                                    schema = @Schema(title = "All", type = "/movies")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -494,7 +602,34 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = Page.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "First Page",
+                                    description = "HATEOAS Link to the first page",
+                                    schema = @Schema(title = "First Page", type = "/movies/{id}/assessments")
+                            ),
+                            @Header(
+                                    name = "Last Page",
+                                    description = "HATEOAS Link to the last page",
+                                    schema = @Schema(title = "Last Page", type = "/movies/{id}/assessments")
+                            ),
+                            @Header(
+                                    name = "Next Page",
+                                    description = "HATEOAS Link to the next page",
+                                    schema = @Schema(title = "Next Page", type = "/movies/{id}/assessments")
+                            ),
+                            @Header(
+                                    name = "Previous Page",
+                                    description = "HATEOAS Link to the previous page",
+                                    schema = @Schema(title = "Previous Page", type = "/movies/{id}/assessments")
+                            ),
+                            @Header(
+                                    name = "Movie",
+                                    description = "HATEOAS Link to the movie",
+                                    schema = @Schema(title = "One user", type = "/movies/{id}")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -579,7 +714,19 @@ public class MovieController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = User.class)
-                    )
+                    ),
+                    headers = {
+                            @Header(
+                                    name = "Movie",
+                                    description = "HATEOAS Link to the movie",
+                                    schema = @Schema(title = "One user", type = "/movies/{id}")
+                            ),
+                            @Header(
+                                    name = "All",
+                                    description = "HATEOAS Link to all of the movie's assessments",
+                                    schema = @Schema(title = "First Page", type = "/movies/{id}/assessments")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "400",
