@@ -42,12 +42,7 @@ public class MovieService {
     //Get assessments
     public Optional<Page<Assessment>> getAssessments(int page, int size, Sort sort, String id) {
         Pageable request = PageRequest.of(page, size, sort);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withIgnoreCase()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-        Example<Assessment> filter = Example.of(new Assessment()
-                .setMovie(new Film().setId(id)),matcher);
-        Page<Assessment> result = assessments.findAll(filter, request);
+        Page<Assessment> result = assessments.findAllByMovie_Id(request, id);
 
         if(result.isEmpty())
             return Optional.empty();

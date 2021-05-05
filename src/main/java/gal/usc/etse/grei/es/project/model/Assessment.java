@@ -6,7 +6,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -28,16 +27,16 @@ public class Assessment {
     @NotNull(message = "The rating can not be null")
     private User user;
     @NotNull(message = "The rating can not be null")
-    private Film film;
+    private Film movie;
     @Schema(example = "I like it")
     private String comment;
 
     public Assessment() { }
-    public Assessment(Integer rating, User user, Film film, String comment) {
+    public Assessment(Integer rating, User user, Film movie, String comment) {
         this.id = id;
         this.rating = rating;
         this.user = user;
-        this.film = film;
+        this.movie = movie;
         this.comment = comment;
     }
 
@@ -51,7 +50,7 @@ public class Assessment {
         return user;
     }
     public Film getMovie() {
-        return film;
+        return movie;
     }
     public String getComment() {
         return comment;
@@ -70,7 +69,7 @@ public class Assessment {
         return this;
     }
     public Assessment setMovie(Film film) {
-        this.film = film;
+        this.movie = film;
         return this;
     }
     public Assessment setComment(String comment) {
@@ -81,7 +80,7 @@ public class Assessment {
     public Assessment updateAssessment(Assessment asses){
         this.rating = asses.rating;
         this.user = asses.user;
-        this.film = asses.film;
+        this.movie = asses.movie;
         this.comment = asses.comment;
         return this;
     }
@@ -91,12 +90,12 @@ public class Assessment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Assessment that = (Assessment) o;
-        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(film, that.film) && Objects.equals(comment, that.comment);
+        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(movie, that.movie) && Objects.equals(comment, that.comment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, rating, user, film, comment);
+        return Objects.hash(id, rating, user, movie, comment);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class Assessment {
                 .add("id='" + id + "'")
                 .add("rating=" + rating)
                 .add("user=" + user)
-                .add("movie=" + film)
+                .add("movie=" + movie)
                 .add("comment='" + comment + "'")
                 .toString();
     }

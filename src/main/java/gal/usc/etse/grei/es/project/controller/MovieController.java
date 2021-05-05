@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
+import gal.usc.etse.grei.es.project.configuration.SerializationConfiguration;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
@@ -739,7 +740,7 @@ public class MovieController {
                     content = @Content(schema = @Schema(implementation = Void.class))
             )
     })
-    ResponseEntity<Assessment> postAssessment(
+    ResponseEntity<MappingJacksonValue> postAssessment(
             @PathVariable("id") String id,
 
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -752,8 +753,15 @@ public class MovieController {
             @RequestBody @Valid Assessment assessment
     ) {
         try {
+            FilterProvider filterProvider= new SimpleFilterProvider().setFailOnUnknownId(false);
+            new SerializationConfiguration().jsonCustomizer();
+
             boolean error = false;
-            if(assessments.get(assessment.getId()).isPresent() || !assessment.getMovie().getId().equals(id)){return ResponseEntity.status(409).body(assessments.get(assessment.getId()).get());}
+            if(assessments.get(assessment.getId()).isPresent() || !assessment.getMovie().getId().equals(id)){
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(assessment);
+                mappingJacksonValue.setFilters(filterProvider);
+                return ResponseEntity.status(409).body(mappingJacksonValue);
+            }
             if(users.get(assessment.getUser().getEmail()).isEmpty()){
                 error = true;
                 assessment.setUser(null);
@@ -775,10 +783,14 @@ public class MovieController {
                         methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.getMovie().getId())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
 
+                MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(result.get());
+                mappingJacksonValue.setFilters(filterProvider);
+
+
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, movie.toString())
                         .header(HttpHeaders.LINK, movieAssessments.toString())
-                        .body(result.get());
+                        .body(mappingJacksonValue);
             }
 
             return ResponseEntity.notFound().build();

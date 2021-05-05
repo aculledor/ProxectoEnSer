@@ -50,12 +50,7 @@ public class UserService {
     //Get assessments
     public Optional<Page<Assessment>> getAssessments(int page, int size, Sort sort, String email) {
         Pageable request = PageRequest.of(page, size, sort);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withIgnoreCase()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-        Example<Assessment> filter = Example.of(new Assessment()
-                .setUser(new User().setEmail(email)),matcher);
-        Page<Assessment> result = assessments.findAll(filter, request);
+        Page<Assessment> result = assessments.findAllByUserEmail(request, email);
 
         if(result.isEmpty())
             return Optional.empty();
