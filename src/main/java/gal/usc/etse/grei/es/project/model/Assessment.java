@@ -22,7 +22,7 @@ public class Assessment {
     @Id
     private long id;
     @NotNull(message = "The rating can not be null")
-    @Schema(required = true, minimum = "1", maximum = "5", example = "3")
+    @Schema(required = true, minimum = "1", maximum = "10", example = "3")
     private Integer rating;
     @NotNull(message = "The rating can not be null")
     private String user;
