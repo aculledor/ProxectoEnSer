@@ -736,10 +736,10 @@ public class UserController {
             if (assessment.isPresent()) {
                 Link self = linkTo(methodOn(AssessmentController.class).getAssessment(id)).withSelfRel();
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovieId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovie())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUserEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUser())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
@@ -828,10 +828,10 @@ public class UserController {
             if (assessmentAux.isPresent()) {
                 Link self = linkTo(methodOn(AssessmentController.class).getAssessment(assessmentAux.get().getId())).withSelfRel();
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessmentAux.get().getMovieId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessmentAux.get().getMovie())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessmentAux.get().getUserEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessmentAux.get().getUser())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
@@ -894,10 +894,10 @@ public class UserController {
             if (assessment.isPresent()) {
                 assessments.delete(id);
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovieId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovie())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUserEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUser())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity
                         .noContent()

@@ -42,7 +42,7 @@ public class MovieService {
     //Get assessments
     public Optional<Page<Assessment>> getAssessments(int page, int size, Sort sort, String id) {
         Pageable request = PageRequest.of(page, size, sort);
-        Page<Assessment> result = assessments.findAllByMovieId(request, id);
+        Page<Assessment> result = assessments.findAllByMovie(request, id);
 
         if(result.isEmpty())
             return Optional.empty();

@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 
 public interface AssessmentRepository extends MongoRepository<Assessment, String> {
-    public Page<Assessment> findAllByMovieId(Pageable request, String movieId);
-    public Page<Assessment> findAllByUserEmail(Pageable request, String userEmail);
+    public Page<Assessment> findAllByMovie(Pageable request, String movieId);
+    public Page<Assessment> findAllByUser(Pageable request, String userEmail);
 }

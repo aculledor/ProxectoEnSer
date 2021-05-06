@@ -50,7 +50,7 @@ public class UserService {
     //Get assessments
     public Optional<Page<Assessment>> getAssessments(int page, int size, Sort sort, String email) {
         Pageable request = PageRequest.of(page, size, sort);
-        Page<Assessment> result = assessments.findAllByUserEmail(request, email);
+        Page<Assessment> result = assessments.findAllByUser(request, email);
 
         if(result.isEmpty())
             return Optional.empty();

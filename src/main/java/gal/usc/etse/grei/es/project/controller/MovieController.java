@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
-import gal.usc.etse.grei.es.project.configuration.SerializationConfiguration;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
 import gal.usc.etse.grei.es.project.service.MovieService;
@@ -754,16 +753,16 @@ public class MovieController {
     ) {
         try {
             boolean error = false;
-            if(assessments.get(assessment.getId()).isPresent() || !assessment.getMovieId().equals(id)){
+            if(assessments.get(assessment.getId()).isPresent() || !assessment.getMovie().equals(id)){
                 return ResponseEntity.status(409).body(assessment);
             }
-            if(users.get(assessment.getUserEmail()).isEmpty()){
+            if(users.get(assessment.getUser()).isEmpty()){
                 error = true;
-                assessment.setUserEmail(null);
+                assessment.setUser(null);
             }
-            if(movies.get(assessment.getMovieId()).isEmpty()){
+            if(movies.get(assessment.getMovie()).isEmpty()){
                 error = true;
-                assessment.setMovieId(null);
+                assessment.setMovie(null);
             }
             if(error){ResponseEntity.status(422).body(assessment);}
 
@@ -772,10 +771,10 @@ public class MovieController {
             if(result.isPresent()) {
 
                 Link movie = linkTo(
-                        methodOn(MovieController.class).getMovie(assessment.getMovieId())
+                        methodOn(MovieController.class).getMovie(assessment.getMovie())
                 ).withRel(relationProvider.getItemResourceRelFor(Film.class));
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.getMovieId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.getMovie())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
 
                 return ResponseEntity.ok()
