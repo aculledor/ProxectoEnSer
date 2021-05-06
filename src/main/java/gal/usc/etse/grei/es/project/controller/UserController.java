@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
 import gal.usc.etse.grei.es.project.model.Assessment;
-import gal.usc.etse.grei.es.project.model.Film;
 import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
 import gal.usc.etse.grei.es.project.service.AssessmentService;
@@ -13,7 +12,6 @@ import gal.usc.etse.grei.es.project.service.MovieService;
 import gal.usc.etse.grei.es.project.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.links.LinkParameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -738,10 +736,10 @@ public class UserController {
             if (assessment.isPresent()) {
                 Link self = linkTo(methodOn(AssessmentController.class).getAssessment(id)).withSelfRel();
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovie().getId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovieId())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUser().getEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUserEmail())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
@@ -830,10 +828,10 @@ public class UserController {
             if (assessmentAux.isPresent()) {
                 Link self = linkTo(methodOn(AssessmentController.class).getAssessment(assessmentAux.get().getId())).withSelfRel();
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessmentAux.get().getMovie().getId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessmentAux.get().getMovieId())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessmentAux.get().getUser().getEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessmentAux.get().getUserEmail())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())
@@ -896,10 +894,10 @@ public class UserController {
             if (assessment.isPresent()) {
                 assessments.delete(id);
                 Link movieAssessments = linkTo(
-                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovie().getId())
+                        methodOn(MovieController.class).getAllAssessments(0, 20, null, assessment.get().getMovieId())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 Link userAssessments = linkTo(
-                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUser().getEmail())
+                        methodOn(UserController.class).getUserAssessments(0, 20, null, assessment.get().getUserEmail())
                 ).withRel(relationProvider.getItemResourceRelFor(Assessment.class));
                 return ResponseEntity
                         .noContent()

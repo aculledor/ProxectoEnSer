@@ -25,18 +25,18 @@ public class Assessment {
     @Schema(required = true, minimum = "1", maximum = "5", example = "3")
     private Integer rating;
     @NotNull(message = "The rating can not be null")
-    private User user;
+    private String userEmail;
     @NotNull(message = "The rating can not be null")
-    private Film movie;
+    private String movieId;
     @Schema(example = "I like it")
     private String comment;
 
     public Assessment() { }
-    public Assessment(Integer rating, User user, Film movie, String comment) {
+    public Assessment(Integer rating, String userEmail, String movieId, String comment) {
         this.id = id;
         this.rating = rating;
-        this.user = user;
-        this.movie = movie;
+        this.userEmail = userEmail;
+        this.movieId = movieId;
         this.comment = comment;
     }
 
@@ -46,11 +46,11 @@ public class Assessment {
     public Integer getRating() {
         return rating;
     }
-    public User getUser() {
-        return user;
+    public String getUserEmail() {
+        return userEmail;
     }
-    public Film getMovie() {
-        return movie;
+    public String getMovieId() {
+        return movieId;
     }
     public String getComment() {
         return comment;
@@ -64,12 +64,12 @@ public class Assessment {
         this.rating = rating;
         return this;
     }
-    public Assessment setUser(User user) {
-        this.user = user;
+    public Assessment setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
         return this;
     }
-    public Assessment setMovie(Film film) {
-        this.movie = film;
+    public Assessment setMovieId(String film) {
+        this.movieId = film;
         return this;
     }
     public Assessment setComment(String comment) {
@@ -79,8 +79,8 @@ public class Assessment {
 
     public Assessment updateAssessment(Assessment asses){
         this.rating = asses.rating;
-        this.user = asses.user;
-        this.movie = asses.movie;
+        this.userEmail = asses.userEmail;
+        this.movieId = asses.movieId;
         this.comment = asses.comment;
         return this;
     }
@@ -90,12 +90,12 @@ public class Assessment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Assessment that = (Assessment) o;
-        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(movie, that.movie) && Objects.equals(comment, that.comment);
+        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(userEmail, that.userEmail) && Objects.equals(movieId, that.movieId) && Objects.equals(comment, that.comment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, rating, user, movie, comment);
+        return Objects.hash(id, rating, userEmail, movieId, comment);
     }
 
     @Override
@@ -103,8 +103,8 @@ public class Assessment {
         return new StringJoiner(", ", Assessment.class.getSimpleName() + "[", "]")
                 .add("id='" + id + "'")
                 .add("rating=" + rating)
-                .add("user=" + user)
-                .add("movie=" + movie)
+                .add("user=" + userEmail)
+                .add("movie=" + movieId)
                 .add("comment='" + comment + "'")
                 .toString();
     }
