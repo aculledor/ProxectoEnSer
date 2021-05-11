@@ -28,15 +28,18 @@ public class Assessment {
     private String user;
     @NotNull(message = "The rating can not be null")
     private String movie;
+    @NotNull(message = "The movie title can not be null")
+    private String movieTitle;
     @Schema(example = "I like it")
     private String comment;
 
     public Assessment() { }
-    public Assessment(Integer rating, String user, String movie, String comment) {
+    public Assessment(Integer rating, String user, String movie, String movieTitle, String comment) {
         this.id = id;
         this.rating = rating;
         this.user = user;
         this.movie = movie;
+        this.movieTitle = movieTitle;
         this.comment = comment;
     }
 
@@ -51,6 +54,9 @@ public class Assessment {
     }
     public String getMovie() {
         return movie;
+    }
+    public String getMovieTitle() {
+        return movieTitle;
     }
     public String getComment() {
         return comment;
@@ -72,6 +78,10 @@ public class Assessment {
         this.movie = film;
         return this;
     }
+    public Assessment setMovieTitle(String movieTitle) {
+        this.movieTitle = movieTitle;
+        return this;
+    }
     public Assessment setComment(String comment) {
         this.comment = comment;
         return this;
@@ -81,6 +91,7 @@ public class Assessment {
         this.rating = asses.rating;
         this.user = asses.user;
         this.movie = asses.movie;
+        this.movieTitle = asses.movieTitle;
         this.comment = asses.comment;
         return this;
     }
@@ -89,23 +100,37 @@ public class Assessment {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Assessment that = (Assessment) o;
-        return Objects.equals(id, that.id) && Objects.equals(rating, that.rating) && Objects.equals(user, that.user) && Objects.equals(movie, that.movie) && Objects.equals(comment, that.comment);
+
+        if (id != that.id) return false;
+        if (!rating.equals(that.rating)) return false;
+        if (!user.equals(that.user)) return false;
+        if (!movie.equals(that.movie)) return false;
+        if (!movieTitle.equals(that.movieTitle)) return false;
+        return comment != null ? comment.equals(that.comment) : that.comment == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, rating, user, movie, comment);
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + rating.hashCode();
+        result = 31 * result + user.hashCode();
+        result = 31 * result + movie.hashCode();
+        result = 31 * result + movieTitle.hashCode();
+        result = 31 * result + (comment != null ? comment.hashCode() : 0);
+        return result;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", Assessment.class.getSimpleName() + "[", "]")
-                .add("id='" + id + "'")
-                .add("rating=" + rating)
-                .add("user=" + user)
-                .add("movie=" + movie)
-                .add("comment='" + comment + "'")
-                .toString();
+        return "Assessment{" +
+                "id=" + id +
+                ", rating=" + rating +
+                ", user='" + user + '\'' +
+                ", movie='" + movie + '\'' +
+                ", movieTitle='" + movieTitle + '\'' +
+                ", comment='" + comment + '\'' +
+                '}';
     }
 }
