@@ -1,8 +1,11 @@
 package gal.usc.etse.grei.es.project.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import gal.usc.etse.grei.es.project.configuration.SerializationConfiguration;
 import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
@@ -77,9 +80,14 @@ public class UserService {
 
     //Modify one
     public Optional<User> modifyUser(String email,  List<Map<String, Object>> updates) throws JsonPatchException {
+        FilterProvider filterProvider= new SimpleFilterProvider().setFailOnUnknownId(false);
+        new SerializationConfiguration().jsonCustomizer();
         User userEdit = users.findById(email).get();
-        PatchUtils aux = new PatchUtils(new ObjectMapper());
-        return Optional.of(this.users.save(aux.patch(userEdit,updates)));
+        ObjectMapper mapper=new ObjectMapper();
+        mapper.setFilterProvider(filterProvider);
+        PatchUtils patch = new PatchUtils(mapper);
+        User updated = patch.patch(userEdit, updates);
+        return Optional.of(this.users.save(updated));
     }
 
     //Delete one

@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Key;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,10 +60,10 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         long now = System.currentTimeMillis();
 
         // Obtemos a lista de roles asignados ao usuario e concatenamolso nun string separado por comas
-        List<String> authorities = authResult.getAuthorities()
+        String authorities = authResult.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .collect(Collectors.joining(","));
 
         // Creamos o token JWT empregando o builder
         JwtBuilder tokenBuilder = Jwts.builder()
@@ -82,4 +81,5 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         // Engadimos o token á resposta na cabeceira "Authentication"
         response.addHeader("Authentication", String.format("Bearer %s", tokenBuilder.compact()));
     }
+
 }

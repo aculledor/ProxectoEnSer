@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
+import gal.usc.etse.grei.es.project.configuration.SerializationConfiguration;
 import gal.usc.etse.grei.es.project.model.Assessment;
 import gal.usc.etse.grei.es.project.model.Friendship;
 import gal.usc.etse.grei.es.project.model.User;
@@ -419,6 +420,7 @@ public class UserController {
     //Modify user
     @PatchMapping(
             path = "{email}",
+            consumes = "application/json-patch+json",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("#email == principal")
@@ -469,7 +471,7 @@ public class UserController {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Modifications to be applied",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = "application/json-patch+json",
                             examples = @ExampleObject(
                                     value = "[{\"op\": \"replace\", \"path\": \"/foo\", \"value\": \"boo\"}]"
                             )
@@ -482,14 +484,14 @@ public class UserController {
             if(updates.isEmpty() || updates.stream().filter(stringObjectMap -> stringObjectMap.values().contains("/email")).count() > 0){ return ResponseEntity.status(422).build(); }
 
             Optional<User> userAux = users.modifyUser(email, updates);
-            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.serializeAllExcept("password");
-            FilterProvider filterProvider = new SimpleFilterProvider().addFilter("userFilter", filter);
+            SimpleBeanPropertyFilter filterToSend = SimpleBeanPropertyFilter.serializeAllExcept("password");
+            FilterProvider filterProviderToSend = new SimpleFilterProvider().addFilter("userFilter", filterToSend);
 
             if(userAux.isPresent()) {
                 Link self = linkTo(methodOn(UserController.class).getUser(userAux.get().getEmail())).withSelfRel();
                 Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(User.class));
                 MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(userAux.get());
-                mappingJacksonValue.setFilters(filterProvider);
+                mappingJacksonValue.setFilters(filterProviderToSend);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.LINK, self.toString())

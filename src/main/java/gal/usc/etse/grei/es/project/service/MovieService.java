@@ -1,7 +1,10 @@
 package gal.usc.etse.grei.es.project.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.fge.jsonpatch.JsonPatchException;
+import gal.usc.etse.grei.es.project.configuration.SerializationConfiguration;
 import gal.usc.etse.grei.es.project.model.*;
 import gal.usc.etse.grei.es.project.model.Date;
 import gal.usc.etse.grei.es.project.repository.AssessmentRepository;
@@ -63,9 +66,15 @@ public class MovieService {
 
     //Modify one
     public Optional<Film> modifyMovie(String id,  List<Map<String, Object>> updates) throws JsonPatchException {
+
+        FilterProvider filterProvider= new SimpleFilterProvider().setFailOnUnknownId(false);
+        new SerializationConfiguration().jsonCustomizer();
         Film movieEdit = movies.findById(id).get();
-        PatchUtils aux = new PatchUtils(new ObjectMapper());
-        return Optional.of(this.movies.save(aux.patch(movieEdit, updates)));
+        ObjectMapper mapper=new ObjectMapper();
+        mapper.setFilterProvider(filterProvider);
+        PatchUtils patch = new PatchUtils(mapper);
+        Film updated = patch.patch(movieEdit, updates);
+        return Optional.of(this.movies.save(updated));
     }
 
     //Get one

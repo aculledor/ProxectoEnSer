@@ -492,9 +492,10 @@ public class MovieController {
     //Modify movie
     @PatchMapping(
             path = "{id}",
+            consumes = "application/json-patch+json",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(
             operationId = "modifyFilm",
             summary = "Modifies a movie",
@@ -542,7 +543,7 @@ public class MovieController {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Modifications to be applied",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = "application/json-patch+json",
                             examples = @ExampleObject(
                                     value = "[{\"op\": \"replace\", \"path\": \"/foo\", \"value\": \"boo\"}]"
                             )
