@@ -7,7 +7,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -29,6 +28,7 @@ public class Friendship {
     @NotBlank(message = "The friend field can not be empty")
     @Schema(required = true, example = "test@test.com")
     private String friend;
+    private String userPicture;
     @Schema(example = "false")
     private Boolean confirmed;
     private Date since;
@@ -36,9 +36,10 @@ public class Friendship {
     public Friendship() {
     }
 
-    public Friendship(String user, String friend, Boolean confirmed, Date since) {
+    public Friendship(String user, String friend, String userPicture, Boolean confirmed, Date since) {
         this.user = user;
         this.friend = friend;
+        this.userPicture = userPicture;
         this.confirmed = confirmed;
         this.since = since;
     }
@@ -51,6 +52,9 @@ public class Friendship {
     }
     public String getFriend() {
         return friend;
+    }
+    public String getUserPicture() {
+        return userPicture;
     }
     public Boolean getConfirmed() {
         return confirmed;
@@ -71,6 +75,10 @@ public class Friendship {
         this.friend = friend;
         return this;
     }
+    public Friendship setUserPicture(String userPicture) {
+        this.userPicture = userPicture;
+        return this;
+    }
     public Friendship setConfirmed(Boolean confirmed) {
         this.confirmed = confirmed;
         return this;
@@ -84,23 +92,37 @@ public class Friendship {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Friendship frienship = (Friendship) o;
-        return Objects.equals(id, frienship.id) && Objects.equals(user, frienship.user) && Objects.equals(friend, frienship.friend) && Objects.equals(confirmed, frienship.confirmed) && Objects.equals(since, frienship.since);
+
+        Friendship that = (Friendship) o;
+
+        if (id != that.id) return false;
+        if (!user.equals(that.user)) return false;
+        if (!friend.equals(that.friend)) return false;
+        if (userPicture != null ? !userPicture.equals(that.userPicture) : that.userPicture != null) return false;
+        if (!confirmed.equals(that.confirmed)) return false;
+        return since.equals(that.since);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, friend, confirmed, since);
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + user.hashCode();
+        result = 31 * result + friend.hashCode();
+        result = 31 * result + (userPicture != null ? userPicture.hashCode() : 0);
+        result = 31 * result + confirmed.hashCode();
+        result = 31 * result + since.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", Friendship.class.getSimpleName() + "[", "]")
-                .add("id='" + id + "'")
-                .add("user='" + user + "'")
-                .add("friend='" + friend + "'")
-                .add("confirmed=" + confirmed)
-                .add("since=" + since)
-                .toString();
+        return "Friendship{" +
+                "id=" + id +
+                ", user='" + user + '\'' +
+                ", friend='" + friend + '\'' +
+                ", userPicture='" + userPicture + '\'' +
+                ", confirmed=" + confirmed +
+                ", since=" + since +
+                '}';
     }
 }

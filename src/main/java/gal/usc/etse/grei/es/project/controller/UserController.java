@@ -975,7 +975,7 @@ public class UserController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", defaultValue = "") List<String> sort,
-            @RequestParam(name = "email", defaultValue = "") String email
+            @PathVariable(name = "email") String email
     ) {
         try{
             List<Sort.Order> criteria = sort.stream().map(string -> {
