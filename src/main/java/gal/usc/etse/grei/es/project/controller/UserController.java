@@ -1292,10 +1292,12 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = Void.class))
             )
     })
-    ResponseEntity<Friendship> deleteFriend(@PathVariable("email") String email, @PathVariable("friendEmail") String friend) {
+    ResponseEntity<Friendship> deleteFriend(
+            @PathVariable("email") String email,
+            @PathVariable("friendEmail") String friendEmail) {
         try{
-            if(users.getFriendship(email, friend).isEmpty()){ return ResponseEntity.notFound().build(); }
-            users.deleteFriend(email, friend);
+            if(users.getFriendship(email, friendEmail).isEmpty()){ return ResponseEntity.notFound().build(); }
+            users.deleteFriend(email, friendEmail);
             Link all = linkTo(UserController.class).withRel(relationProvider.getCollectionResourceRelFor(Friendship.class));
             return ResponseEntity.noContent().header(HttpHeaders.LINK, all.toString()).build();
         } catch (NoSuchElementException e) {
